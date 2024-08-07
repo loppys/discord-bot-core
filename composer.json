@@ -1,0 +1,24 @@
+{
+  "name": "vengine/discord-core",
+  "description": "discord-bot core in php",
+  "minimum-stability": "dev",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Discord\\Bot\\": "src/"
+    }
+  },
+  "require": {
+    "vengine/container": "*",
+    "vengine/cache": "*",
+    "team-reflex/discord-php": "^7.3",
+    "symfony/filesystem": "^6.2",
+    "doctrine/dbal": "^4.0",
+    "composer/semver": "^3.3",
+    "monolog/monolog": "^3.3",
+    "ext-zlib": "*",
+    "ext-json": "*",
+    "ext-sodium": "*",
+    "ext-mbstring": "*"
+  }
+}
