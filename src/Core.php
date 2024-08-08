@@ -76,6 +76,8 @@ class Core implements SingletonInterface
             throw new RuntimeException('Create core fail');
         }
 
+        $core->components->initComponents();
+
         $core->setDiscord($discord);
 
         $core->scheduleManager->setLoop(

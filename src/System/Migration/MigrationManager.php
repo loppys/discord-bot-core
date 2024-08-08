@@ -116,7 +116,11 @@ class MigrationManager
                 return null;
             }
 
-            return $query->setSqlQuery($sql);
+            $query = $query->setSqlQuery($sql);
+
+            $this->addMigrationQuery($query);
+
+            return $query;
         }
 
         if (pathinfo($queryLink, PATHINFO_EXTENSION) === 'php') {
@@ -136,7 +140,11 @@ class MigrationManager
                 return null;
             }
 
-            return $query->setPhpMigration($php);
+            $query = $query->setPhpMigration($php);
+
+            $this->addMigrationQuery($query);
+
+            return $query;
         }
 
         return null;

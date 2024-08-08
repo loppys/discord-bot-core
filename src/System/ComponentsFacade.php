@@ -56,13 +56,25 @@ class ComponentsFacade extends AbstractFacade
         foreach ($this->initClassList as $class) {
             $this->checkComponent($class);
         }
-        
-        parent::__construct();
+
+        parent::__construct(false);
     }
 
     public function getComponentList(): array
     {
         return $this->getClassList();
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    public function initComponents(): static
+    {
+        foreach ($this->initClassList as $name => $component) {
+            $this->add($name, $component);
+        }
+
+        return $this;
     }
 
     /**
@@ -102,13 +114,13 @@ class ComponentsFacade extends AbstractFacade
      */
     protected function checkComponent(string|object $class): void
     {
-        $this->isValidComponent($class);
+        $this->validateComponent($class);
     }
 
     /**
      * @throws ReflectionException
      */
-    protected function isValidComponent(string|object $class): bool
+    protected function validateComponent(string|object $class): bool
     {
         $reflection = new ReflectionClass($class);
 

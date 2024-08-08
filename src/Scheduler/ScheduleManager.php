@@ -136,51 +136,70 @@ class ScheduleManager
         }
 
         foreach ($configTasks as $name => $configTask) {
-            if (empty($configTask['type'])) {
-                $configTask['type'] = TaskTypeStorage::DEFAULT;
-            }
-
-            if (!is_callable($configTask['handler'])) {
+            if (!is_array($configTask)) {
                 continue;
             }
 
-            [$classOrObject, $method] = $configTask['handler'];
-
-            if (!is_object($classOrObject)) {
-                if (!class_exists($classOrObject)) {
-                    continue;
-                }
-
-                $object = $this->getContainer()->createObject($classOrObject);
-
-                $configTask['handler'] = [$object, $method];
-            }
-
-            $executor = (new Executor())->setCallable($configTask['handler']);
-
-            if (!empty($configTask['arguments']) && is_array($configTask['arguments'])) {
-                $executor->setArguments($configTask['arguments']);
-            }
-
-            if ($configTask['type'] === TaskTypeStorage::PERIODIC) {
-                $task = (new PeriodicTask())
-                    ->setName($name)
-                    ->setExecutor($executor)
-                    ->setQueueGroup(QueueGroupStorage::PERIODIC)
-                ;
-
-                if (!empty($configTask['interval'])) {
-                    $task->setPeriodicInterval($configTask['interval']);
-                }
-            } else {
-                $task = (new DefaultTask())
-                    ->setName($name)
-                    ->setExecutor($executor)
-                ;
-            }
-
-            $this->addTask($task);
+            $this->initTaskByArray($configTask, $name);
         }
+
+        return true;
+    }
+
+    public function initTaskByArray(array $taskArray, string $name = ''): bool
+    {
+        if (empty($taskArray['name']) && !empty($name)) {
+            $taskArray['name'] = $name;
+        }
+
+        if (empty($taskArray['name'])) {
+            $taskArray['name'] = uniqid('task.', true);
+        }
+
+        if (empty($configTask['type'])) {
+            $configTask['type'] = TaskTypeStorage::DEFAULT;
+        }
+
+        if (!is_callable($configTask['handler'])) {
+            return false;
+        }
+
+        [$classOrObject, $method] = $configTask['handler'];
+
+        if (!is_object($classOrObject)) {
+            if (!class_exists($classOrObject)) {
+                return false;
+            }
+
+            $object = $this->getContainer()->createObject($classOrObject);
+
+            $configTask['handler'] = [$object, $method];
+        }
+
+        $executor = (new Executor())->setCallable($configTask['handler']);
+
+        if (!empty($configTask['arguments']) && is_array($configTask['arguments'])) {
+            $executor->setArguments($configTask['arguments']);
+        }
+
+        if ($configTask['type'] === TaskTypeStorage::PERIODIC) {
+            $task = (new PeriodicTask())
+                ->setName($taskArray['name'])
+                ->setExecutor($executor)
+                ->setQueueGroup(QueueGroupStorage::PERIODIC)
+            ;
+
+            if (!empty($configTask['interval'])) {
+                $task->setPeriodicInterval($configTask['interval']);
+            }
+        } else {
+            $task = (new DefaultTask())
+                ->setName($taskArray['name'])
+                ->setExecutor($executor)
+            ;
+        }
+
+        $this->addTask($task);
 
         return true;
     }
