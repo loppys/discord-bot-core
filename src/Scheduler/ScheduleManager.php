@@ -160,7 +160,7 @@ class ScheduleManager
             $configTask['type'] = TaskTypeStorage::DEFAULT;
         }
 
-        if (!is_callable($configTask['handler'])) {
+        if (empty($configTask['handler']) || !is_callable($configTask['handler'])) {
             return false;
         }
 

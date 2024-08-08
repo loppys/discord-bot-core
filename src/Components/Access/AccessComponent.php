@@ -8,6 +8,10 @@ use Discord\Bot\Components\Access\Services\BaseAccessService;
 
 class AccessComponent extends AbstractComponent
 {
+    protected array $migrationList = [
+        __DIR__ . '/Migrations/access_install.sql'
+    ];
+
     public function __construct(AccessRepository $repository, BaseAccessService $service)
     {
         parent::__construct($repository, $service);
