@@ -102,9 +102,7 @@ class ComponentsFacade extends AbstractFacade
      */
     protected function checkComponent(string|object $class): void
     {
-        if (!$this->isValidComponent($class)) {
-            throw new RuntimeException("the {$class} must inherit from ComponentInterface");
-        }
+        $this->isValidComponent($class);
     }
 
     /**
@@ -114,8 +112,8 @@ class ComponentsFacade extends AbstractFacade
     {
         $reflection = new ReflectionClass($class);
 
-        if ($reflection->implementsInterface(ComponentInterface::class)) {
-            return false;
+        if (!in_array(ComponentInterface::class, $reflection->getInterfaceNames(), true)) {
+            throw new RuntimeException("the {$class} must inherit from ComponentInterface");
         }
 
         $constructor = $reflection->getConstructor();

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\System\Repository;
+namespace Discord\Bot\System\Repository;
 
-use App\Repository\Entity\AbstractEntity;
+use Discord\Bot\System\Repository\Entity\AbstractEntity;
 use Discord\Bot\System\Interfaces\RepositoryInterface;
 use Discord\Bot\System\Traits\EntityCreatorTrait;
 use Discord\Bot\System\DBAL;
@@ -31,6 +31,8 @@ abstract class AbstractRepository implements RepositoryInterface
     {
         $this->connection = $db->getConnection();
         $this->db = $db;
+
+        array_unshift($this->columnMap, $this->primaryKey);
     }
 
     /**
@@ -58,7 +60,21 @@ abstract class AbstractRepository implements RepositoryInterface
             return $entity;
         }
 
-        return $entity->setEntityData($data);
+        return $entity->setColumns($this->columnMap)->setEntityData($data);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function saveByEntity(AbstractEntity $entity): bool
+    {
+        $data = $entity->getEntityData();
+
+        if (empty($data)) {
+            return false;
+        }
+
+        return $this->save($data);
     }
 
     /**
@@ -129,6 +145,14 @@ abstract class AbstractRepository implements RepositoryInterface
     public function dropTable(): void
     {
         $this->connection->createSchemaManager()->dropTable($this->table);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function hasTable(): bool
+    {
+        return $this->connection->createSchemaManager()->tableExists($this->table);
     }
 
     /**

@@ -2,7 +2,7 @@
 
 namespace Discord\Bot\System\Traits;
 
-use App\Repository\Entity\AbstractEntity;
+use Discord\Bot\System\Repository\Entity\AbstractEntity;
 use RuntimeException;
 
 trait EntityCreatorTrait

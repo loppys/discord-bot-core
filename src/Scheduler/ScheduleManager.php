@@ -162,13 +162,21 @@ class ScheduleManager
                 $executor->setArguments($configTask['arguments']);
             }
 
-            $task = (new DefaultTask())
-                ->setName($name)
-                ->setExecutor($executor)
-            ;
-
             if ($configTask['type'] === TaskTypeStorage::PERIODIC) {
-                $task->setQueueGroup(QueueGroupStorage::PERIODIC);
+                $task = (new PeriodicTask())
+                    ->setName($name)
+                    ->setExecutor($executor)
+                    ->setQueueGroup(QueueGroupStorage::PERIODIC)
+                ;
+
+                if (!empty($configTask['interval'])) {
+                    $task->setPeriodicInterval($configTask['interval']);
+                }
+            } else {
+                $task = (new DefaultTask())
+                    ->setName($name)
+                    ->setExecutor($executor)
+                ;
             }
 
             $this->addTask($task);

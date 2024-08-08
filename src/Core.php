@@ -3,6 +3,7 @@
 namespace Discord\Bot;
 
 use Discord\Bot\System\DBAL;
+use Discord\Bot\System\Migration\MigrationManager;
 use Discord\Bot\System\Traits\ContainerInjection;
 use Discord\Bot\System\Traits\SingletonTrait;
 use Discord\Bot\Scheduler\ScheduleManager;
@@ -25,6 +26,7 @@ class Core implements SingletonInterface
     protected LoopInterface $loop;
 
     public function __construct(
+        MigrationManager $migrationManager,
         ScheduleManager $scheduleManager,
         ComponentsFacade $componentFacade,
         DBAL $db
@@ -43,6 +45,7 @@ class Core implements SingletonInterface
         $this->getContainer()
             ->setShared('components', $componentFacade)
             ->setShared('scheduleManager', $scheduleManager)
+            ->setShared('migrationManager', $migrationManager)
             ->setShared('db', $db)
         ;
 
@@ -58,6 +61,7 @@ class Core implements SingletonInterface
         ?ComponentsFacade $overrideComponentsFacade = null
     ): static {
         $_SERVER['create.auto'] = true;
+        $_SERVER['core.dir'] = __DIR__;
 
         if (empty($discordOptions)) {
             throw new RuntimeException('discord options empty');

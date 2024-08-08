@@ -2,7 +2,7 @@
 
 namespace Discord\Bot\System\DataStructure\Entity;
 
-use App\Repository\Entity\AbstractEntity;
+use Discord\Bot\System\Repository\Entity\AbstractEntity;
 
 abstract class AbstractTableEntity extends AbstractEntity
 {
