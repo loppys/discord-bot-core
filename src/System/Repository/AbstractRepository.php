@@ -2,12 +2,14 @@
 
 namespace Discord\Bot\System\Repository;
 
+use Discord\Bot\System\Repository\DTO\DependencyTable;
 use Discord\Bot\System\Repository\Entity\AbstractEntity;
 use Discord\Bot\System\Interfaces\RepositoryInterface;
 use Discord\Bot\System\Traits\EntityCreatorTrait;
 use Discord\Bot\System\DBAL;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
+use Doctrine\DBAL\Query\QueryBuilder;
 
 abstract class AbstractRepository implements RepositoryInterface
 {
@@ -22,6 +24,11 @@ abstract class AbstractRepository implements RepositoryInterface
     ];
 
     protected string $entityClass = '';
+
+    /**
+     * @var array<DependencyTable|array>
+     */
+    protected array $dependencyTableList = [];
 
     protected Connection $connection;
 
@@ -114,14 +121,18 @@ abstract class AbstractRepository implements RepositoryInterface
     /**
      * @throws Exception
      */
-    public function update(int $id, array $data = [], ?array $criteria = null): bool
+    public function updateByPrimaryKey(int $id, array $data = []): bool
+    {
+        return $this->update($data, [$this->primaryKey => $id]);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function update(array $data = [], ?array $criteria = null): bool
     {
         if (empty($data)) {
             return false;
-        }
-
-        if ($criteria === null) {
-            $criteria = ['id' => $id];
         }
 
         return (bool)$this->connection->update($this->table, $data, $criteria);
@@ -186,8 +197,8 @@ abstract class AbstractRepository implements RepositoryInterface
     protected function get(array $criteria = [], ?int $limit = null): array|bool
     {
         $qb = $this->connection->createQueryBuilder()
-            ->select('*')
-            ->from($this->table)
+            ->select('t1.*')
+            ->from($this->table, 't1')
         ;
 
         foreach ($criteria as $k => $v) {
@@ -201,11 +212,101 @@ abstract class AbstractRepository implements RepositoryInterface
         }
 
         $qb->setMaxResults($limit);
+        
+        if (!empty($this->dependencyTableList)) {
+            $qb = $this->dependencyRecursiveCreate($qb, $this->dependencyTableList);
+        }
 
         if ($limit === 1) {
             return $qb->executeQuery()->fetchAssociative();
         }
 
         return $qb->executeQuery()->fetchAllAssociative();
+    }
+
+    private function dependencyRecursiveCreate(
+        QueryBuilder $queryBuilder,
+        null|array|DependencyTable $dependency = null
+    ): QueryBuilder {
+        if ($dependency === null) {
+            return $queryBuilder;
+        }
+
+        if (is_array($dependency)) {
+            foreach ($dependency as $dependencyTable) {
+                if (is_array($dependencyTable)) {
+                    $dependencyTable = DependencyTable::create($dependencyTable);
+                }
+
+                if (!$dependencyTable->isValid()) {
+                    continue;
+                }
+
+                $queryBuilder = $this->createDependency($queryBuilder, $dependencyTable);
+
+                if (!empty($dependencyTable->getDependencyIsDependent())) {
+                    $queryBuilder = $this->dependencyRecursiveCreate($queryBuilder, $dependencyTable->getDependencyIsDependent());
+                }
+            }
+        } else {
+            if (!$dependency->isValid()) {
+                return $queryBuilder;
+            }
+
+            $queryBuilder = $this->createDependency($queryBuilder, $dependency);
+
+            if (!empty($dependency->getDependencyIsDependent())) {
+                $queryBuilder = $this->dependencyRecursiveCreate($queryBuilder, $dependency->getDependencyIsDependent());
+            }
+        }
+
+        return $queryBuilder;
+    }
+
+    private function createDependency(QueryBuilder $queryBuilder, DependencyTable $dependencyTable): QueryBuilder
+    {
+        $joinMethod = $dependencyTable->getJoinType() . 'Join';
+        if (!method_exists($queryBuilder, $joinMethod)) {
+            return $queryBuilder;
+        }
+
+        if (empty($dependencyTable->getConditionFromColumns())) {
+            return $queryBuilder;
+        }
+
+        if (!empty($dependencyTable->getSelectColumns())) {
+            foreach ($dependencyTable->getSelectColumns() as $selectColumn) {
+                $queryBuilder->addSelect(
+                    $dependencyTable->getAliasTable() . '.' . $selectColumn
+                );
+            }
+        } else {
+            $queryBuilder->addSelect($dependencyTable->getAliasTable() . '.*');
+        }
+
+        $conditionColumns = $dependencyTable->getConditionFromColumns();
+
+        $condition = '';
+
+        $firstKey = array_key_first($conditionColumns);
+        foreach ($conditionColumns as $key => $column) {
+            $clm = $dependencyTable->getAliasTable() . '.' . $key;
+            $val = $this->db->escapeValue($column);
+
+            if ($firstKey === $column) {
+                $condition = $queryBuilder->expr()->eq($clm, $val);
+            } else {
+                $condition .= 'AND ' . $queryBuilder->expr()->eq($clm, $val);
+            }
+        }
+
+        $queryBuilder->{$joinMethod}(
+            $dependencyTable->getFromAlias(),
+            $dependencyTable->getFromTable(),
+            $dependencyTable->getAliasTable(),
+            $condition
+        );
+
+        return $queryBuilder;
     }
 }

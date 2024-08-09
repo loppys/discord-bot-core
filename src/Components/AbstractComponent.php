@@ -3,11 +3,14 @@
 namespace Discord\Bot\Components;
 
 use Discord\Bot\Core;
+use Discord\Bot\System\ComponentsFacade;
 use Discord\Bot\System\Interfaces\ComponentInterface;
 use Doctrine\DBAL\Exception;
 
 abstract class AbstractComponent implements ComponentInterface
 {
+    protected ComponentsFacade $componentsFacade;
+
     protected mixed $repository;
 
     protected mixed $service;
@@ -33,6 +36,8 @@ abstract class AbstractComponent implements ComponentInterface
         $this->service = $service;
 
         $core = Core::getInstance();
+
+        $this->componentsFacade = $core->components;
 
         foreach ($this->migrationList as $migrationLink) {
             $query = $core->migrationManager->createMigrationQuery($migrationLink);

@@ -26,7 +26,12 @@ interface RepositoryInterface
     /**
      * @throws Exception
      */
-    public function update(int $id, array $data = [], ?array $criteria = null): bool;
+    public function updateByPrimaryKey(int $id, array $data = []): bool;
+
+    /**
+     * @throws Exception
+     */
+    public function update(array $data = [], ?array $criteria = null): bool;
 
     /**
      * @throws Exception

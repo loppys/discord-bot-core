@@ -2,33 +2,24 @@
 
 namespace Discord\Bot\Components\User;
 
-use Discord\Bot\System\Interfaces\ComponentInterface;
-use Discord\Bot\System\Interfaces\ComponentServiceInterface;
-use Discord\Bot\System\Interfaces\RepositoryInterface;
+use Discord\Bot\Components\AbstractComponent;
+use Discord\Bot\Components\User\Repositories\UserRepository;
+use Discord\Bot\Components\User\Services\UserService;
 
-class UserComponent implements ComponentInterface
+class UserComponent extends AbstractComponent
 {
-    /**
-     * @inheritDoc
-     */
-    public function getScheduleTasks(): array
+    public function __construct(UserRepository $repository, UserService $service)
     {
-        // TODO: Implement getScheduleTasks() method.
+        parent::__construct($repository, $service);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getRepository(): mixed
+    public function getRepository(): UserRepository
     {
-        // TODO: Implement getRepository() method.
+        return $this->repository;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getService(): mixed
+    public function getService(): UserService
     {
-        // TODO: Implement getService() method.
+        return $this->service;
     }
 }

@@ -37,15 +37,15 @@ class ComponentsFacade extends AbstractFacade
      */
     protected array $initClassList = [
         'access' => AccessComponent::class,
-        'command' => CommandComponent::class,
-        'event' => EventComponent::class,
-        'interactionComponent' => InteractionComponent::class,
-        'license' => LicenseComponent::class,
-        'management' => ManagementComponent::class,
-        'settings' => SettingsComponent::class,
-        'stat' => StatComponent::class,
+//        'command' => CommandComponent::class,
+//        'event' => EventComponent::class,
+//        'interactionComponent' => InteractionComponent::class,
+//        'license' => LicenseComponent::class,
+//        'management' => ManagementComponent::class,
+//        'settings' => SettingsComponent::class,
+//        'stat' => StatComponent::class,
         'user' => UserComponent::class,
-        'voice' => VoiceComponent::class,
+//        'voice' => VoiceComponent::class,
     ];
 
     /**
