@@ -19,12 +19,21 @@ class BaseAccessService
     /**
      * @throws Exception
      */
-    public function createAccessGroup(string $userId, int $group = BaseAccessStorage::USER): bool
+    public function getUserAccessGroup(string $userId, string $server): ?AccessEntity
+    {
+        return $this->repository->createEntity(['ac_usr_id' => $userId, 'ac_srv_id' => $server]);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function createAccessGroup(string $userId, string $server, int $group = BaseAccessStorage::USER): bool
     {
         $entity = new AccessEntity();
 
         $entity->ac_usr_id = $userId;
         $entity->ac_group_lvl = $group;
+        $entity->ac_srv_id = $server;
 
         return $this->repository->saveByEntity($entity);
     }

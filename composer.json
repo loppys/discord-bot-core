@@ -16,6 +16,7 @@
     "doctrine/dbal": "^4.0",
     "composer/semver": "^3.3",
     "monolog/monolog": "^3.3",
+    "php-ffmpeg/php-ffmpeg": "*",
     "ext-zlib": "*",
     "ext-json": "*",
     "ext-sodium": "*",

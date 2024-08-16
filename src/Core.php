@@ -2,6 +2,7 @@
 
 namespace Discord\Bot;
 
+use Discord\Bot\System\Discord\DiscordEventManager;
 use Discord\Bot\System\DBAL;
 use Discord\Bot\System\Migration\MigrationManager;
 use Discord\Bot\System\Traits\ContainerInjection;
@@ -29,6 +30,7 @@ class Core implements SingletonInterface
         MigrationManager $migrationManager,
         ScheduleManager $scheduleManager,
         ComponentsFacade $componentFacade,
+        DiscordEventManager $discordEventManager,
         DBAL $db
     ) {
         if (empty($_SERVER['create.auto'])) {
@@ -46,6 +48,7 @@ class Core implements SingletonInterface
             ->setShared('components', $componentFacade)
             ->setShared('scheduleManager', $scheduleManager)
             ->setShared('migrationManager', $migrationManager)
+            ->setShared('discordEventManager', $discordEventManager)
             ->setShared('db', $db)
         ;
 
@@ -58,8 +61,13 @@ class Core implements SingletonInterface
      */
     public static function create(
         array $discordOptions = [],
-        ?ComponentsFacade $overrideComponentsFacade = null
+        ?ComponentsFacade $overrideComponentsFacade = null,
+        bool $initDI = true
     ): static {
+        if ($initDI) {
+            new Container();
+        }
+
         $_SERVER['create.auto'] = true;
         $_SERVER['core.dir'] = __DIR__;
 
@@ -76,9 +84,9 @@ class Core implements SingletonInterface
             throw new RuntimeException('Create core fail');
         }
 
-        $core->components->initComponents();
-
         $core->setDiscord($discord);
+
+        $core->components->initComponents();
 
         $core->scheduleManager->setLoop(
             $core->getLoop()
@@ -91,6 +99,11 @@ class Core implements SingletonInterface
 
             $core->getContainer()->setShared('components', $overrideComponentsFacade);
         }
+
+        $core->discordEventManager
+            ->initDiscord($discord)
+            ->initDefaultEvents()
+        ;
 
         return $core;
     }

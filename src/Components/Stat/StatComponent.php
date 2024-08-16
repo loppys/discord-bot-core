@@ -2,33 +2,18 @@
 
 namespace Discord\Bot\Components\Stat;
 
-use Discord\Bot\System\Interfaces\ComponentInterface;
-use Discord\Bot\System\Interfaces\ComponentServiceInterface;
-use Discord\Bot\System\Interfaces\RepositoryInterface;
+use Discord\Bot\Components\AbstractComponent;
+use Discord\Bot\Components\Stat\Entity\StatEntity;
 
-class StatComponent implements ComponentInterface
+class StatComponent extends AbstractComponent
 {
-    /**
-     * @inheritDoc
-     */
-    public function getScheduleTasks(): array
+    public function __construct( $service)
     {
-        // TODO: Implement getScheduleTasks() method.
+        parent::__construct($service);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getRepository(): mixed
+    public function getService(): ?StatEntity
     {
-        // TODO: Implement getRepository() method.
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getService(): mixed
-    {
-        // TODO: Implement getService() method.
+        return $this->service;
     }
 }

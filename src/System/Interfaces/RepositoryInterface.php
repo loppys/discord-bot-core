@@ -6,7 +6,7 @@ use Doctrine\DBAL\Exception;
 
 interface RepositoryInterface
 {
-    public function createEntity(string $dataKey): mixed;
+    public function createEntity(array $criteria): mixed;
 
     /**
      * @throws Exception

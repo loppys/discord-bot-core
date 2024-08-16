@@ -5,13 +5,14 @@ namespace Discord\Bot\Components;
 use Discord\Bot\Core;
 use Discord\Bot\System\ComponentsFacade;
 use Discord\Bot\System\Interfaces\ComponentInterface;
+use Discord\Discord;
 use Doctrine\DBAL\Exception;
 
 abstract class AbstractComponent implements ComponentInterface
 {
-    protected ComponentsFacade $componentsFacade;
+    protected ComponentsFacade $components;
 
-    protected mixed $repository;
+    protected Discord $discord;
 
     protected mixed $service;
 
@@ -30,14 +31,13 @@ abstract class AbstractComponent implements ComponentInterface
     /**
      * @throws Exception
      */
-    public function __construct(mixed $repository, mixed $service)
+    public function __construct(mixed $service)
     {
-        $this->repository = $repository;
-        $this->service = $service;
-
         $core = Core::getInstance();
 
-        $this->componentsFacade = $core->components;
+        $this->service = $service;
+        $this->discord = $core->getDiscord();
+        $this->components = $core->components;
 
         foreach ($this->migrationList as $migrationLink) {
             $query = $core->migrationManager->createMigrationQuery($migrationLink);
@@ -65,13 +65,5 @@ abstract class AbstractComponent implements ComponentInterface
         return $this->migrationList;
     }
 
-    /**
-     * @inheritDoc
-     */
-    abstract public function getRepository(): mixed;
-
-    /**
-     * @inheritDoc
-     */
     abstract public function getService(): mixed;
 }

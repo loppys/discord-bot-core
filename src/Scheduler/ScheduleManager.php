@@ -101,7 +101,9 @@ class ScheduleManager
 
                 if ($task->getPeriodicInterval() !== 0) {
                     $timer = $this->loop->addPeriodicTimer($task->getPeriodicInterval(), function () use ($task) {
-                        $this->executeTask($task);
+                        if (!$this->executeTask($task)) {
+                            trigger_error("fail execute {$task->getName()}");
+                        }
                     });
 
                     $this->taskInLoop[$task->getName()] = $timer;

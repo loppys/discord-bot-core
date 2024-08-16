@@ -37,7 +37,7 @@ class ComponentsFacade extends AbstractFacade
      */
     protected array $initClassList = [
         'access' => AccessComponent::class,
-//        'command' => CommandComponent::class,
+        'command' => CommandComponent::class,
 //        'event' => EventComponent::class,
 //        'interactionComponent' => InteractionComponent::class,
 //        'license' => LicenseComponent::class,
@@ -45,7 +45,7 @@ class ComponentsFacade extends AbstractFacade
 //        'settings' => SettingsComponent::class,
 //        'stat' => StatComponent::class,
         'user' => UserComponent::class,
-//        'voice' => VoiceComponent::class,
+        'voice' => VoiceComponent::class,
     ];
 
     /**
@@ -136,14 +136,14 @@ class ComponentsFacade extends AbstractFacade
         $params = $constructor->getParameters();
 
         // проверки из-за DI, т.к. нужно точно знать что создавать
-        if (!$params[0]->hasType() || !$params[1]->hasType()) {
+        if (!$params[0]->hasType()) {
             return false;
         }
 
-        if ($params[0]->getType() === null || $params[1]->getType() === null) {
+        if ($params[0]->getType() === null) {
             return false;
         }
 
-        return $params[0]->getType()->getName() !== 'mixed' && $params[1]->getType()?->getName() !== 'mixed';
+        return $params[0]->getType()->getName() !== 'mixed';
     }
 }

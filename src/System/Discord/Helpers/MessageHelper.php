@@ -1,6 +1,6 @@
 <?php
 
-namespace App\System\Discord\Helpers;
+namespace Discord\Bot\System\Discord\Helpers;
 
 class MessageHelper
 {

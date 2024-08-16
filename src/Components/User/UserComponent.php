@@ -3,19 +3,45 @@
 namespace Discord\Bot\Components\User;
 
 use Discord\Bot\Components\AbstractComponent;
+use Discord\Bot\Components\Access\Storage\BaseAccessStorage;
+use Discord\Bot\Components\User\Entity\User;
 use Discord\Bot\Components\User\Repositories\UserRepository;
 use Discord\Bot\Components\User\Services\UserService;
+use Doctrine\DBAL\Exception;
 
 class UserComponent extends AbstractComponent
 {
-    public function __construct(UserRepository $repository, UserService $service)
+    protected array $migrationList = [
+        __DIR__ . '/Migrations/user_table.sql'
+    ];
+
+    public function __construct(UserService $service)
     {
-        parent::__construct($repository, $service);
+        parent::__construct($service);
     }
 
-    public function getRepository(): UserRepository
+    /**
+     * @throws Exception
+     */
+    public function hasUser(string $id): bool
     {
-        return $this->repository;
+        return $this->getService()->hasUser($id);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function getUser(string $id, string $server): ?User
+    {
+        return $this->getService()->getUserEntity($id, $server);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function register(string $id, string $server, int $group = BaseAccessStorage::USER): ?User
+    {
+        return $this->getService()->registerUser($id, $server, $group);
     }
 
     public function getService(): UserService

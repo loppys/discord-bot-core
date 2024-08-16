@@ -2,17 +2,23 @@
 
 namespace Discord\Bot\Components\User\Repositories;
 
+use Discord\Bot\Components\User\Entity\User;
 use Discord\Bot\System\Repository\AbstractRepository;
-use Discord\Bot\System\Repository\Storage\JoinTypeStorage;
 
 class UserRepository extends AbstractRepository
 {
-    protected array $dependencyTableList = [
-        [
-            'fromTable' => 'access',
-            'aliasTable' => 'ac',
-            'conditionFromColumns' => ['usr_id' => 'ac_usr_id'],
-            'joinType' => JoinTypeStorage::LEFT,
-        ]
+    protected string $table = 'users';
+
+    protected string $primaryKey = 'usr_id';
+
+    protected array $columnMap = [
+        'usr_stat_id',
     ];
+
+    protected string $entityClass = User::class;
+
+    public function createEntity(array $criteria = []): ?User
+    {
+        return parent::createEntity($criteria);
+    }
 }

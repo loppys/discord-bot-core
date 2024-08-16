@@ -5,7 +5,6 @@ namespace Discord\Bot\System\Repository;
 use Discord\Bot\System\Repository\DTO\DependencyTable;
 use Discord\Bot\System\Repository\Entity\AbstractEntity;
 use Discord\Bot\System\Interfaces\RepositoryInterface;
-use Discord\Bot\System\Traits\EntityCreatorTrait;
 use Discord\Bot\System\DBAL;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
@@ -13,8 +12,6 @@ use Doctrine\DBAL\Query\QueryBuilder;
 
 abstract class AbstractRepository implements RepositoryInterface
 {
-    use EntityCreatorTrait;
-
     protected string $table = '';
 
     protected string $primaryKey = 'id';
@@ -45,7 +42,7 @@ abstract class AbstractRepository implements RepositoryInterface
     /**
      * @throws Exception
      */
-    public function createEntity(string $dataKey, string $column = ''): mixed
+    public function createEntity(array $criteria = []): mixed
     {
         if (!class_exists($this->entityClass)) {
             return null;
@@ -57,17 +54,24 @@ abstract class AbstractRepository implements RepositoryInterface
             return null;
         }
 
-        if (empty($column)) {
-            $column = $this->primaryKey;
-        }
-
-        $data = $this->get([$column => $dataKey], 1);
+        $data = $this->get($criteria, 1);
 
         if (empty($data)) {
             return $entity;
         }
 
         return $entity->setColumns($this->columnMap)->setEntityData($data);
+    }
+
+    public function createEntityByArray(array $data): ?AbstractEntity
+    {
+        $entity = new $this->entityClass;
+
+        if ($entity instanceof AbstractEntity) {
+            return $entity->setColumns($this->columnMap)->setEntityData($data);
+        }
+
+        return null;
     }
 
     /**
@@ -171,12 +175,23 @@ abstract class AbstractRepository implements RepositoryInterface
      */
     public function getAll(): array
     {
-        return $this->connection->createQueryBuilder()
+        $data = $this->connection->createQueryBuilder()
             ->select('*')
             ->from($this->table)
             ->executeQuery()
             ->fetchAllAssociative()
-            ;
+        ;
+
+        $result = [];
+        foreach ($data as $item) {
+            $entity = $this->createEntityByArray($item);
+
+            if ($entity !== null) {
+                $result[] = $entity;
+            }
+        }
+
+        return $result;
     }
 
     /**

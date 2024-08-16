@@ -2,33 +2,40 @@
 
 namespace Discord\Bot\Components\Voice;
 
-use Discord\Bot\System\Interfaces\ComponentInterface;
-use Discord\Bot\System\Interfaces\ComponentServiceInterface;
-use Discord\Bot\System\Interfaces\RepositoryInterface;
+use Discord\Bot\Components\AbstractComponent;
+use Discord\Bot\Components\Voice\Repository\VoiceQueueRepository;
+use Discord\Bot\Components\Voice\Repository\VoiceRoomRepository;
+use Discord\Bot\Components\Voice\Services\VoiceRoomService;
+use Discord\Bot\Components\Voice\Services\VoiceQueueService;
+use Discord\Bot\Core;
+use Discord\Discord;
+use Discord\Parts\Channel\Channel;
 
-class VoiceComponent implements ComponentInterface
+class VoiceComponent extends AbstractComponent
 {
-    /**
-     * @inheritDoc
-     */
-    public function getScheduleTasks(): array
-    {
-        // TODO: Implement getScheduleTasks() method.
+    protected VoiceQueueService $voiceQueueService;
+
+    protected VoiceQueueRepository $voiceQueueRepository;
+
+    public function __construct(
+        VoiceRoomService $service,
+        VoiceRoomRepository $repository,
+        VoiceQueueRepository $voiceQueueRepository,
+        VoiceQueueService $voiceQueueService
+    ) {
+        parent::__construct($service);
+
+        $this->voiceQueueRepository = $voiceQueueRepository;
+        $this->voiceQueueService = $voiceQueueService;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getRepository(): mixed
+    public function playSong(Channel $channel, string $song): bool
     {
-        // TODO: Implement getRepository() method.
+        return $this->getService()->initDiscord($this->discord)->playSound($channel, $song);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getService(): mixed
+    public function getService(): VoiceRoomService
     {
-        // TODO: Implement getService() method.
+        return $this->service;
     }
 }

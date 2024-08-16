@@ -14,9 +14,9 @@ class AccessComponent extends AbstractComponent
         __DIR__ . '/Migrations/access_install.sql'
     ];
 
-    public function __construct(AccessRepository $repository, BaseAccessService $service)
+    public function __construct(BaseAccessService $service)
     {
-        parent::__construct($repository, $service);
+        parent::__construct($service);
     }
 
     /**
@@ -38,11 +38,6 @@ class AccessComponent extends AbstractComponent
     public function userIsRoot(int $userAccess): bool
     {
         return $this->getService()->isRoot($userAccess);
-    }
-
-    public function getRepository(): AccessRepository
-    {
-        return $this->repository;
     }
 
     public function getService(): BaseAccessService
