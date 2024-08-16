@@ -60,10 +60,36 @@ class Core implements SingletonInterface
      * @throws IntentException
      */
     public static function create(
+        string $globalConfigPath = '',
         array $discordOptions = [],
         ?ComponentsFacade $overrideComponentsFacade = null,
         bool $initDI = true
     ): static {
+        if (!file_exists($globalConfigPath)) {
+            throw new RuntimeException('config file empty');
+        }
+
+        if (pathinfo($globalConfigPath, PATHINFO_EXTENSION) !== 'php') {
+            throw new RuntimeException('config must be with php extension');
+        }
+
+        $globalConfig = require $globalConfigPath;
+
+        if (!is_array($globalConfig)) {
+            throw new RuntimeException('invalid config');
+        }
+
+        $symbolCommand = $globalConfig['symbolCommand'] ?? '~';
+        $useNewCommandSystem = $globalConfig['useNewCommandSystem'] ?? true;
+
+        if (empty($globalConfig['databaseParams']) || !is_array($globalConfig['databaseParams'])) {
+            throw new RuntimeException('db params invalid');
+        }
+
+        Config::setDatabaseParams($globalConfig['databaseParams']);
+        Config::setSymbolCommand($symbolCommand);
+        Config::setUseNewCommandSystem($useNewCommandSystem);
+
         if ($initDI) {
             new Container();
         }

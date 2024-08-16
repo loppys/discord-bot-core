@@ -5,16 +5,31 @@ namespace Discord\Bot;
 class Config
 {
     protected static array $databaseParams = [
-        'dbType' => 'pdo_mysql',
-        'dbHost' => 'localhost',
-        'dbName' => 'discord_bot_new',
-        'dbLogin' => 'root',
+        'dbType' => '',
+        'dbHost' => '',
+        'dbName' => '',
+        'dbLogin' => '',
         'dbPassword' => ''
     ];
 
     protected static string $symbolCommand = '~';
 
     protected static bool $useNewCommandSystem = true;
+
+    public static function setDatabaseParams(array $databaseParams): void
+    {
+        self::$databaseParams = $databaseParams;
+    }
+
+    public static function setSymbolCommand(string $symbolCommand): void
+    {
+        self::$symbolCommand = $symbolCommand;
+    }
+
+    public static function setUseNewCommandSystem(bool $useNewCommandSystem): void
+    {
+        self::$useNewCommandSystem = $useNewCommandSystem;
+    }
 
     public static function getDatabaseParams(): array
     {
