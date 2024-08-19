@@ -62,7 +62,7 @@ class MigrationManager
     /**
      * @throws Exception
      */
-    public function collectMigrationFiles(string $dirPath = '', bool $checkHash = true): bool
+    public function collectMigrationFiles(string $dirPath = '', bool $checkHash = true, bool $force = false): bool
     {
         if (!is_dir($dirPath)) {
             return false;
@@ -84,6 +84,10 @@ class MigrationManager
 
             if ($query !== null) {
                 $this->addMigrationQuery($query);
+
+                if ($force) {
+                    $this->migrationExecute($query);
+                }
             } else {
                 $failCountFile++;
             }

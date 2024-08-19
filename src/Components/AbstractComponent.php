@@ -40,6 +40,12 @@ abstract class AbstractComponent implements ComponentInterface
         $this->components = $core->components;
 
         foreach ($this->migrationList as $migrationLink) {
+            if (is_dir($migrationLink)) {
+                $core->migrationManager->collectMigrationFiles($migrationLink, force: $this->forceRunMigrations);
+
+                continue;
+            }
+
             $query = $core->migrationManager->createMigrationQuery($migrationLink);
 
             if ($this->forceRunMigrations && $query !== null) {

@@ -10,13 +10,14 @@ use Discord\Bot\Components\Command\Services\CommandService;
 use Discord\Bot\Scheduler\Storage\TaskTypeStorage;
 use Discord\Http\Exceptions\NoPermissionsException;
 use Discord\Parts\Channel\Message;
+use Discord\Parts\Interactions\Interaction;
 use Doctrine\DBAL\Exception;
 
 
 class CommandComponent extends AbstractComponent
 {
     protected array $migrationList = [
-        __DIR__ . '/Migrations/001-commands.sql',
+        __DIR__ . '/Migrations',
     ];
 
     protected array $scheduleTasks = [
@@ -39,6 +40,15 @@ class CommandComponent extends AbstractComponent
     public function execute(Message $message): ExecuteResult
     {
         return $this->getService()->execute($message);
+    }
+
+    /**
+     * @throws NoPermissionsException
+     * @throws Exception
+     */
+    public function executeNewScheme(Interaction $interaction): ExecuteResult
+    {
+        return $this->getService()->executeNewScheme($interaction);
     }
 
     /**

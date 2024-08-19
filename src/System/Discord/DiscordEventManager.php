@@ -3,13 +3,8 @@
 namespace Discord\Bot\System\Discord;
 
 use Discord\Bot\Core;
-use Discord\Bot\System\ComponentsFacade;
 use Discord\Bot\System\Discord\Events\AbstractEvent;
-use Discord\Bot\System\Discord\Events\JoinUserEvent;
-use Discord\Bot\System\Discord\Events\MessageCreateEvent;
-use Discord\Bot\System\Discord\Events\ReadyEvent;
 use Loader\System\Traits\ContainerTrait;
-use Discord\WebSockets\Event;
 use Discord\Discord;
 
 class DiscordEventManager
@@ -21,16 +16,7 @@ class DiscordEventManager
     /**
      * @var array<string>
      */
-    protected array $defaultEvents = [
-        'ready' => ReadyEvent::class,
-//        Event::INTERACTION_CREATE => InteractionEvent::class,
-        Event::MESSAGE_CREATE => MessageCreateEvent::class,
-//        Event::MESSAGE_UPDATE => MessageEvent::class,
-//        Event::MESSAGE_DELETE => MessageEvent::class,
-//        Event::VOICE_STATE_UPDATE => VoiceEvent::class,
-//        Event::PRESENCE_UPDATE => PresenceEvent::class,
-        Event::GUILD_MEMBER_ADD => JoinUserEvent::class,
-    ];
+    protected array $defaultEvents = [];
 
     /**
      * @var array<AbstractEvent>

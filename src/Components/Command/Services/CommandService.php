@@ -13,6 +13,7 @@ use Discord\Bot\Core;
 use Discord\Http\Exceptions\NoPermissionsException;
 use Discord\Parts\Channel\Message;
 use Discord\Parts\Guild\Guild;
+use Discord\Parts\Interactions\Interaction;
 use Doctrine\DBAL\Exception as DBException;
 use Exception;
 
@@ -102,7 +103,7 @@ class CommandService
      * @throws NoPermissionsException
      * @throws DBException
      */
-    public function execute(Message $message): ExecuteResult
+    public function execute(Message $message, ?Interaction $interaction = null): ExecuteResult
     {
         $command = $this->compareCommandByMessage($message->content);
 
@@ -120,7 +121,7 @@ class CommandService
             return ExecuteResult::create('Не удалось выполнить команду.', '9020');
         }
 
-        if ($entity->isNewScheme()) {
+        if ($interaction === null && $entity->isNewScheme()) {
             $commandName = $command->getCommandName();
             $cmdSymbol = Config::getSymbolCommand();
 
@@ -142,12 +143,29 @@ class CommandService
             );
         }
 
+        if ($interaction !== null && $entity->isNewScheme()) {
+            $commandProcess->setInteraction($interaction);
+        }
+
         return $commandProcess->process(
             $message,
             $command,
             $command->getFlags(),
             $command->getArguments()
         );
+    }
+
+    /**
+     * @throws NoPermissionsException
+     * @throws DBException
+     */
+    public function executeNewScheme(Interaction $interaction): ExecuteResult
+    {
+        if ($interaction->message === null) {
+            return new ExecuteResult();
+        }
+
+        return $this->execute($interaction->message, $interaction);
     }
 
     /**
