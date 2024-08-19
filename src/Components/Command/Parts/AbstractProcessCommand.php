@@ -12,6 +12,7 @@ use Discord\Builders\MessageBuilder;
 use Discord\Discord;
 use Discord\Http\Exceptions\NoPermissionsException;
 use Discord\Parts\Channel\Message;
+use Discord\Parts\Interactions\Interaction;
 use Doctrine\DBAL\Exception;
 use Loader\System\Container;
 
@@ -30,6 +31,8 @@ abstract class AbstractProcessCommand
     protected DBAL $db;
 
     protected Discord $discord;
+
+    protected Interaction $interaction;
 
     protected Container $container;
 
@@ -57,6 +60,10 @@ abstract class AbstractProcessCommand
         array $flags = [],
         array $arguments = []
     ): bool {
+        if ($command->) {
+
+        }
+
         $this->message = $message;
         $this->command = $command;
         $this->flags = $flags;
@@ -155,6 +162,11 @@ abstract class AbstractProcessCommand
         }
 
         return true;
+    }
+
+    public function setInteraction(Interaction $interaction): void
+    {
+        $this->interaction = $interaction;
     }
 
     abstract protected function execute(): bool;

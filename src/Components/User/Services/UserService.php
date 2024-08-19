@@ -15,16 +15,12 @@ class UserService
 
     protected BaseAccessService $accessService;
 
-    protected StatService $statService;
-
     public function __construct(
         UserRepository $repository,
-        BaseAccessService $accessService,
-        StatService $statService
+        BaseAccessService $accessService
     ) {
         $this->repository = $repository;
         $this->accessService = $accessService;
-        $this->statService = $statService;
     }
 
     /**

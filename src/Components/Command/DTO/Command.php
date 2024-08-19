@@ -16,6 +16,8 @@ class Command
 
     protected array $arguments = [];
 
+    protected bool $newScheme = false;
+
     public function __construct(string $message)
     {
         $this->rawCommand = $message;

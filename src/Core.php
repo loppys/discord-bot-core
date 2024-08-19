@@ -59,12 +59,13 @@ class Core implements SingletonInterface
      * @throws ReflectionException
      * @throws IntentException
      */
-    public static function create(
-        string $globalConfigPath = '',
-        array $discordOptions = [],
-        ?ComponentsFacade $overrideComponentsFacade = null,
-        bool $initDI = true
-    ): static {
+    public static function create(Configurator $configurator): static
+    {
+        $globalConfigPath = $configurator->getGlobalConfigPath();
+        $discordOptions = $configurator->getDiscordOptions();
+        $overrideComponentsFacade = $configurator->getOverrideComponentsFacade();
+        $initDI = $configurator->isInitDI();
+
         if (!file_exists($globalConfigPath)) {
             throw new RuntimeException('config file empty');
         }
@@ -130,6 +131,12 @@ class Core implements SingletonInterface
             ->initDiscord($discord)
             ->initDefaultEvents()
         ;
+
+        if (!empty($configurator->getDiscordEvents())) {
+            foreach ($configurator->getDiscordEvents() as $name => $class) {
+                $core->discordEventManager->registerDiscordEvent($name, $class);
+            }
+        }
 
         return $core;
     }
