@@ -1,3 +1,3 @@
-# discord-bot-core
+# discrod PHP bot-core
 
 `composer require vengine/discord-core`
