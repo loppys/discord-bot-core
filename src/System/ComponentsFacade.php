@@ -38,12 +38,12 @@ class ComponentsFacade extends AbstractFacade
     protected array $initClassList = [
         'access' => AccessComponent::class,
         'command' => CommandComponent::class,
-        'event' => EventComponent::class,
-        'interactionComponent' => InteractionComponent::class,
-        'license' => LicenseComponent::class,
-        'management' => ManagementComponent::class,
-        'settings' => SettingsComponent::class,
-        'stat' => StatComponent::class,
+//        'event' => EventComponent::class,
+//        'interactionComponent' => InteractionComponent::class,
+//        'license' => LicenseComponent::class,
+//        'management' => ManagementComponent::class,
+//        'settings' => SettingsComponent::class,
+//        'stat' => StatComponent::class,
         'user' => UserComponent::class,
         'voice' => VoiceComponent::class,
     ];
@@ -56,13 +56,25 @@ class ComponentsFacade extends AbstractFacade
         foreach ($this->initClassList as $class) {
             $this->checkComponent($class);
         }
-        
-        parent::__construct();
+
+        parent::__construct(false);
     }
 
     public function getComponentList(): array
     {
         return $this->getClassList();
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    public function initComponents(): static
+    {
+        foreach ($this->initClassList as $name => $component) {
+            $this->add($name, $component);
+        }
+
+        return $this;
     }
 
     /**
@@ -102,20 +114,18 @@ class ComponentsFacade extends AbstractFacade
      */
     protected function checkComponent(string|object $class): void
     {
-        if (!$this->isValidComponent($class)) {
-            throw new RuntimeException("the {$class} must inherit from ComponentInterface");
-        }
+        $this->validateComponent($class);
     }
 
     /**
      * @throws ReflectionException
      */
-    protected function isValidComponent(string|object $class): bool
+    protected function validateComponent(string|object $class): bool
     {
         $reflection = new ReflectionClass($class);
 
-        if ($reflection->implementsInterface(ComponentInterface::class)) {
-            return false;
+        if (!in_array(ComponentInterface::class, $reflection->getInterfaceNames(), true)) {
+            throw new RuntimeException("the {$class} must inherit from ComponentInterface");
         }
 
         $constructor = $reflection->getConstructor();
@@ -126,14 +136,14 @@ class ComponentsFacade extends AbstractFacade
         $params = $constructor->getParameters();
 
         // проверки из-за DI, т.к. нужно точно знать что создавать
-        if (!$params[0]->hasType() || !$params[1]->hasType()) {
+        if (!$params[0]->hasType()) {
             return false;
         }
 
-        if ($params[0]->getType() === null || $params[1]->getType() === null) {
+        if ($params[0]->getType() === null) {
             return false;
         }
 
-        return $params[0]->getType()->getName() !== 'mixed' && $params[1]->getType()?->getName() !== 'mixed';
+        return $params[0]->getType()->getName() !== 'mixed';
     }
 }

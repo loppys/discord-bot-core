@@ -1,37 +1,39 @@
 <?php
 
-namespace App\System\Discord\Events;
+namespace Discord\Bot\System\Discord\Events;
 
+use Discord\Bot\System\ComponentsFacade;
 use Loader\System\Traits\ContainerTrait;
 
 abstract class AbstractEvent
 {
     use ContainerTrait;
 
+    protected ComponentsFacade $components;
+
     protected string $name = '';
 
-    /**
-     * @var array<string>
-     */
-    protected array $methodList = [];
+    protected string $callbackMethod;
 
     public function __construct()
     {
         $this->container = $this->getContainer();
     }
 
-    public function getCallable(?string $name = null): ?callable
+    public function setComponents(ComponentsFacade $components): static
     {
-        if (empty($this->methodList[$name ?? $this->name])) {
+        $this->components = $components;
+
+        return $this;
+    }
+
+    public function getCallable(): ?callable
+    {
+        if (!method_exists($this, $this->callbackMethod ?? '')) {
             return null;
         }
 
-        $method = $this->methodList[$name ?? $this->name];
-        if (!method_exists($this, $method)) {
-            return null;
-        }
-
-        return [$this, $method];
+        return [$this, $this->callbackMethod];
     }
 
     public function getName(): string

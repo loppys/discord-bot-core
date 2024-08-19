@@ -2,7 +2,9 @@
 
 namespace Discord\Bot;
 
+use Discord\Bot\System\Discord\DiscordEventManager;
 use Discord\Bot\System\DBAL;
+use Discord\Bot\System\Migration\MigrationManager;
 use Discord\Bot\System\Traits\ContainerInjection;
 use Discord\Bot\System\Traits\SingletonTrait;
 use Discord\Bot\Scheduler\ScheduleManager;
@@ -25,8 +27,10 @@ class Core implements SingletonInterface
     protected LoopInterface $loop;
 
     public function __construct(
+        MigrationManager $migrationManager,
         ScheduleManager $scheduleManager,
         ComponentsFacade $componentFacade,
+        DiscordEventManager $discordEventManager,
         DBAL $db
     ) {
         if (empty($_SERVER['create.auto'])) {
@@ -43,6 +47,8 @@ class Core implements SingletonInterface
         $this->getContainer()
             ->setShared('components', $componentFacade)
             ->setShared('scheduleManager', $scheduleManager)
+            ->setShared('migrationManager', $migrationManager)
+            ->setShared('discordEventManager', $discordEventManager)
             ->setShared('db', $db)
         ;
 
@@ -54,10 +60,42 @@ class Core implements SingletonInterface
      * @throws IntentException
      */
     public static function create(
+        string $globalConfigPath = '',
         array $discordOptions = [],
-        ?ComponentsFacade $overrideComponentsFacade = null
+        ?ComponentsFacade $overrideComponentsFacade = null,
+        bool $initDI = true
     ): static {
+        if (!file_exists($globalConfigPath)) {
+            throw new RuntimeException('config file empty');
+        }
+
+        if (pathinfo($globalConfigPath, PATHINFO_EXTENSION) !== 'php') {
+            throw new RuntimeException('config must be with php extension');
+        }
+
+        $globalConfig = require $globalConfigPath;
+
+        if (!is_array($globalConfig)) {
+            throw new RuntimeException('invalid config');
+        }
+
+        $symbolCommand = $globalConfig['symbolCommand'] ?? '~';
+        $useNewCommandSystem = $globalConfig['useNewCommandSystem'] ?? true;
+
+        if (empty($globalConfig['databaseParams']) || !is_array($globalConfig['databaseParams'])) {
+            throw new RuntimeException('db params invalid');
+        }
+
+        Config::setDatabaseParams($globalConfig['databaseParams']);
+        Config::setSymbolCommand($symbolCommand);
+        Config::setUseNewCommandSystem($useNewCommandSystem);
+
+        if ($initDI) {
+            new Container();
+        }
+
         $_SERVER['create.auto'] = true;
+        $_SERVER['core.dir'] = __DIR__;
 
         if (empty($discordOptions)) {
             throw new RuntimeException('discord options empty');
@@ -74,6 +112,8 @@ class Core implements SingletonInterface
 
         $core->setDiscord($discord);
 
+        $core->components->initComponents();
+
         $core->scheduleManager->setLoop(
             $core->getLoop()
         );
@@ -85,6 +125,11 @@ class Core implements SingletonInterface
 
             $core->getContainer()->setShared('components', $overrideComponentsFacade);
         }
+
+        $core->discordEventManager
+            ->initDiscord($discord)
+            ->initDefaultEvents()
+        ;
 
         return $core;
     }

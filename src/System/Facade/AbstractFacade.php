@@ -8,9 +8,13 @@ abstract class AbstractFacade
 
     protected array $initClassList = [];
 
-    public function __construct()
+    public function __construct(bool $initClassList = true)
     {
-        $this->facade = (new ClassFacade())->initClassList($this->initClassList);
+        $this->facade = new ClassFacade();
+
+        if ($initClassList) {
+            $this->facade->initClassList($this->initClassList);
+        }
     }
 
     public function add(string $name, object|string $value): static

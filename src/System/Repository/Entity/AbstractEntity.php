@@ -1,12 +1,14 @@
 <?php
 
-namespace App\Repository\Entity;
+namespace Discord\Bot\System\Repository\Entity;
 
 use ArrayAccess;
 use Iterator;
 
 abstract class AbstractEntity implements ArrayAccess, Iterator
 {
+    protected array $columns = [];
+
     protected array $entityData = [];
 
     private int $iterationKey = 0;
@@ -18,11 +20,56 @@ abstract class AbstractEntity implements ArrayAccess, Iterator
 
     public function setEntityData(array $entityData): static
     {
-        $this->entityData = $entityData;
+        foreach ($entityData as $column => $data) {
+            if (!in_array($column, $this->columns, true)) {
+                continue;
+            }
+
+            $this->entityData[$column] = $data;
+        }
 
         $this->rewind();
 
         return $this;
+    }
+
+    public function setColumns(array $columns): static
+    {
+        $this->columns = $columns;
+
+        return $this;
+    }
+
+    public function getColumns(): array
+    {
+        return $this->columns;
+    }
+
+    public function __get(string $name): mixed
+    {
+        if (property_exists($this, $name)) {
+            return $this->{$name};
+        }
+
+        if (!empty($this->entityData[$name])) {
+            return $this->entityData[$name];
+        }
+
+        return null;
+    }
+
+    public function __set(string $name, $value): void
+    {
+        $this->entityData[$name] = $value;
+
+        if (property_exists($this, $name)) {
+            $this->{$name} = $value;
+        }
+    }
+
+    public function __isset(string $name): bool
+    {
+        return property_exists($this, $name) || !empty($this->entityData[$name]);
     }
 
     public function getEntityData(): array
