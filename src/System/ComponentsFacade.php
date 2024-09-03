@@ -20,15 +20,8 @@ use RuntimeException;
 
 /**
  * @property AccessComponent $access
- * @property CommandComponent $command;
- * @property EventComponent $event;
- * @property InteractionComponent $interactionComponent;
- * @property LicenseComponent $license;
- * @property ManagementComponent $management;
- * @property SettingsComponent $settings;
- * @property StatComponent $stat;
- * @property UserComponent $user;
- * @property VoiceComponent $voice;
+ * @property CommandComponent $command
+ * @property UserComponent $user
  */
 class ComponentsFacade extends AbstractFacade
 {
@@ -38,14 +31,7 @@ class ComponentsFacade extends AbstractFacade
     protected array $initClassList = [
         'access' => AccessComponent::class,
         'command' => CommandComponent::class,
-//        'event' => EventComponent::class,
-//        'interactionComponent' => InteractionComponent::class,
-//        'license' => LicenseComponent::class,
-//        'management' => ManagementComponent::class,
-//        'settings' => SettingsComponent::class,
-//        'stat' => StatComponent::class,
         'user' => UserComponent::class,
-        'voice' => VoiceComponent::class,
     ];
 
     /**

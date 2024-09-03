@@ -18,6 +18,8 @@ use Loader\System\Container;
 
 abstract class AbstractProcessCommand
 {
+    public bool $isNewScheme = false;
+
     public static int $access = BaseAccessStorage::USER;
 
     protected Command $command;
@@ -56,20 +58,15 @@ abstract class AbstractProcessCommand
      */
     public function process(
         Message $message,
-        Command $command,
-        array $flags = [],
-        array $arguments = []
+        Command $command
     ): bool {
-        if ($command->) {
-
-        }
-
         $this->message = $message;
         $this->command = $command;
-        $this->flags = $flags;
-        $this->arguments = $arguments;
+        $this->flags = $command->getFlags();
+        $this->arguments = $command->getArguments();
 
         if (!$this->execute()) {
+            // На случай, если будет переопределение
             if ($this->message === null) {
                 return false;
             }
@@ -166,6 +163,8 @@ abstract class AbstractProcessCommand
 
     public function setInteraction(Interaction $interaction): void
     {
+        $this->isNewScheme = true;
+
         $this->interaction = $interaction;
     }
 

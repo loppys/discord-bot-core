@@ -41,11 +41,11 @@ class BaseAccessService
     /**
      * @throws Exception
      */
-    public function updateUserAccessGroup(string $userId, int $group): bool
+    public function updateUserAccessGroup(string $userId, string $server, int $group): bool
     {
         return $this->repository->update(
             ['ac_group_lvl' => $group],
-            ['ac_usr_id' => $userId]
+            ['ac_usr_id' => $userId, 'ac_srv_id' => $server]
         );
     }
 

@@ -19,7 +19,7 @@ class Configurator
 
     protected array $discordOptions = [];
 
-    protected ?ComponentsFacade $overrideComponentsFacade = null;
+    protected array $overrideComponents = [];
 
     protected bool $initDI = true;
 
@@ -86,14 +86,14 @@ class Configurator
         return $this;
     }
 
-    public function getOverrideComponentsFacade(): ?ComponentsFacade
+    public function getOverrideComponents(): array
     {
-        return $this->overrideComponentsFacade;
+        return $this->overrideComponents;
     }
 
-    public function setOverrideComponentsFacade(?ComponentsFacade $overrideComponentsFacade): static
+    public function setOverrideComponents(array $overrideComponents): static
     {
-        $this->overrideComponentsFacade = $overrideComponentsFacade;
+        $this->overrideComponents = $overrideComponents;
 
         return $this;
     }

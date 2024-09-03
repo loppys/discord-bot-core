@@ -9,6 +9,8 @@ abstract class AbstractEntity implements ArrayAccess, Iterator
 {
     protected array $columns = [];
 
+    protected array $otherColumns = [];
+
     protected array $entityData = [];
 
     private int $iterationKey = 0;
@@ -18,10 +20,15 @@ abstract class AbstractEntity implements ArrayAccess, Iterator
         $this->entityData = $entityData;
     }
 
+    public function toArray(): array
+    {
+        return $this->getEntityData();
+    }
+
     public function setEntityData(array $entityData): static
     {
         foreach ($entityData as $column => $data) {
-            if (!in_array($column, $this->columns, true)) {
+            if (!in_array($column, $this->otherColumns, true) && !in_array($column, $this->columns, true)) {
                 continue;
             }
 
@@ -35,7 +42,7 @@ abstract class AbstractEntity implements ArrayAccess, Iterator
 
     public function setColumns(array $columns): static
     {
-        $this->columns = $columns;
+        $this->columns = array_merge($columns, $this->otherColumns);
 
         return $this;
     }

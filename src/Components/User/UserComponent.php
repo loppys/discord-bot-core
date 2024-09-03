@@ -44,6 +44,11 @@ class UserComponent extends AbstractComponent
         return $this->getService()->registerUser($id, $server, $group);
     }
 
+    public function updateUser(string $userId, array $updateData = []): bool
+    {
+        return $this->getService()->updateUser($userId, $updateData);
+    }
+
     public function getService(): UserService
     {
         return $this->service;

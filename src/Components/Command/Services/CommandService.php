@@ -3,10 +3,14 @@
 namespace Discord\Bot\Components\Command\Services;
 
 use Discord\Bot\Components\Command\DTO\Command;
+use Discord\Bot\Components\Command\DTO\CommandMigration;
 use Discord\Bot\Components\Command\DTO\ExecuteResult;
 use Discord\Bot\Components\Command\Entity\CommandEntity;
 use Discord\Bot\Components\Command\Parts\AbstractProcessCommand;
 use Discord\Bot\Components\Command\Repositories\CommandRepository;
+use Discord\Bot\Components\Command\Storage\CommandMigrationTypeStorage;
+use Discord\Bot\Scheduler\Interface\QueueManagerInterface;
+use Discord\Bot\Scheduler\QueueManager;
 use Discord\Parts\Interactions\Command\Command as DiscordCommand;
 use Discord\Bot\Config;
 use Discord\Bot\Core;
@@ -21,9 +25,12 @@ class CommandService
 {
     protected CommandRepository $commandRepository;
 
+    protected QueueManagerInterface $queueManager;
+
     public function __construct(CommandRepository $commandRepository)
     {
         $this->commandRepository = $commandRepository;
+        $this->queueManager = new QueueManager();
     }
 
     /**
@@ -108,17 +115,17 @@ class CommandService
         $command = $this->compareCommandByMessage($message->content);
 
         if (!$this->hasCommand($command)) {
-            return ExecuteResult::create('Команда не найдена.', '9010');
+            return ExecuteResult::create('Команда не найдена.', '9010', false);
         }
 
         $entity = $this->getCommandByDTO($command);
 
         if ($entity === null) {
-            return ExecuteResult::create('Не удалось создать команду.', '9011');
+            return ExecuteResult::create('Не удалось создать команду.', '9011', false);
         }
 
         if (!$entity->isCommandClassExists()) {
-            return ExecuteResult::create('Не удалось выполнить команду.', '9020');
+            return ExecuteResult::create('Не удалось выполнить команду.', '9020', false);
         }
 
         if ($interaction === null && $entity->isNewScheme()) {
@@ -127,7 +134,8 @@ class CommandService
 
             return ExecuteResult::create(
                 "{$cmdSymbol}{$commandName} использует устаревшую схему вызова, используйте /{$commandName}",
-                '11022'
+                '11022',
+                false
             );
         }
 
@@ -139,7 +147,8 @@ class CommandService
         if (!$commandProcess instanceof AbstractProcessCommand) {
             return ExecuteResult::create(
                 'Команда сформирована некорректно',
-                '22011'
+                '22011',
+                false
             );
         }
 
@@ -147,11 +156,23 @@ class CommandService
             $commandProcess->setInteraction($interaction);
         }
 
-        return $commandProcess->process(
+        $result = $commandProcess->process(
             $message,
-            $command,
-            $command->getFlags(),
-            $command->getArguments()
+            $command
+        );
+
+        if ($result) {
+            return ExecuteResult::create(
+                '',
+                '1',
+                true
+            );
+        }
+
+        return ExecuteResult::create(
+            'Команда выполнена с ошибками',
+            '00192',
+            false
         );
     }
 
@@ -191,5 +212,34 @@ class CommandService
     public function compareCommandByMessage(string $message): Command
     {
         return new Command($message);
+    }
+
+    public function addCommandMigration(CommandMigration $migration): static
+    {
+        $this->queueManager->addTask($migration);
+
+        return $this;
+    }
+
+    /**
+     * @param array<CommandMigration>|null $migrations
+     * @return void
+     * @throws DBException
+     */
+    public function executeCommandMigration(?array $migrations = null): void
+    {
+        /** @var CommandMigration $item */
+        foreach ($migrations ?? $this->queueManager->compareQueue() as $item) {
+            match ($item->getType()) {
+                CommandMigrationTypeStorage::CREATE => $this->addCommand($item),
+                CommandMigrationTypeStorage::UPDATE => $this->commandRepository->update(
+                    $item->toArray(),
+                    ['name' => $item->name]
+                ),
+                CommandMigrationTypeStorage::DELETE => $this->commandRepository->delete(
+                    ['name' => $item->name]
+                )
+            };
+        }
     }
 }

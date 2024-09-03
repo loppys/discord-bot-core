@@ -2,6 +2,7 @@
 
 namespace Discord\Bot\Components\User\Entity;
 
+use Bot\App\Components\Stat\Entity\StatEntity;
 use Discord\Bot\System\Repository\Entity\AbstractEntity;
 
 /**

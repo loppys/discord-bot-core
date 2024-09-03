@@ -30,9 +30,9 @@ class AccessComponent extends AbstractComponent
     /**
      * @throws Exception
      */
-    public function updateUserAccessGroup(string $userId, int $newAccessGroup): bool
+    public function updateUserAccessGroup(string $userId, string $server, int $newAccessGroup): bool
     {
-        return $this->getService()->updateUserAccessGroup($userId, $newAccessGroup);
+        return $this->getService()->updateUserAccessGroup($userId, $server, $newAccessGroup);
     }
 
     public function userIsRoot(int $userAccess): bool

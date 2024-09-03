@@ -18,7 +18,7 @@ class ScheduleManager
 {
     use ContainerTrait;
 
-    protected int $executeInterval = 900;
+    protected int $executeInterval = 30;
 
     protected QueueManagerInterface $queueManager;
 
@@ -122,6 +122,8 @@ class ScheduleManager
 
     public function executeTask(AbstractTask $task): bool
     {
+        print PHP_EOL . "execute task {$task->getName()}" . PHP_EOL;
+
         return $task->getExecutor()->execute();
     }
 
@@ -158,15 +160,15 @@ class ScheduleManager
             $taskArray['name'] = uniqid('task.', true);
         }
 
-        if (empty($configTask['type'])) {
-            $configTask['type'] = TaskTypeStorage::DEFAULT;
+        if (empty($taskArray['type'])) {
+            $taskArray['type'] = TaskTypeStorage::DEFAULT;
         }
 
-        if (empty($configTask['handler']) || !is_callable($configTask['handler'])) {
+        if (empty($taskArray['handler']) || !is_array($taskArray['handler'])) {
             return false;
         }
 
-        [$classOrObject, $method] = $configTask['handler'];
+        [$classOrObject, $method] = $taskArray['handler'];
 
         if (!is_object($classOrObject)) {
             if (!class_exists($classOrObject)) {
@@ -175,24 +177,24 @@ class ScheduleManager
 
             $object = $this->getContainer()->createObject($classOrObject);
 
-            $configTask['handler'] = [$object, $method];
+            $taskArray['handler'] = [$object, $method];
         }
 
-        $executor = (new Executor())->setCallable($configTask['handler']);
+        $executor = (new Executor())->setCallable($taskArray['handler']);
 
-        if (!empty($configTask['arguments']) && is_array($configTask['arguments'])) {
-            $executor->setArguments($configTask['arguments']);
+        if (!empty($taskArray['arguments']) && is_array($taskArray['arguments'])) {
+            $executor->setArguments($taskArray['arguments']);
         }
 
-        if ($configTask['type'] === TaskTypeStorage::PERIODIC) {
+        if ($taskArray['type'] === TaskTypeStorage::PERIODIC) {
             $task = (new PeriodicTask())
                 ->setName($taskArray['name'])
                 ->setExecutor($executor)
                 ->setQueueGroup(QueueGroupStorage::PERIODIC)
             ;
 
-            if (!empty($configTask['interval'])) {
-                $task->setPeriodicInterval($configTask['interval']);
+            if (!empty($taskArray['interval'])) {
+                $task->setPeriodicInterval($taskArray['interval']);
             }
         } else {
             $task = (new DefaultTask())

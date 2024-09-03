@@ -51,6 +51,8 @@ class ClassFacade
     {
         $this->classList[$name] = $class;
 
+        $this->create($name);
+
         return $this;
     }
 
@@ -70,6 +72,11 @@ class ClassFacade
         }
 
         return $this;
+    }
+
+    public function isCreated(string $name): bool
+    {
+        return !empty($this->created[$name]);
     }
 
     public function has(string $name): bool

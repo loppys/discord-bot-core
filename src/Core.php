@@ -61,9 +61,12 @@ class Core implements SingletonInterface
      */
     public static function create(Configurator $configurator): static
     {
+        $_SERVER['create.auto'] = true;
+        $_SERVER['core.dir'] = __DIR__;
+
         $globalConfigPath = $configurator->getGlobalConfigPath();
         $discordOptions = $configurator->getDiscordOptions();
-        $overrideComponentsFacade = $configurator->getOverrideComponentsFacade();
+        $overrideComponents = $configurator->getOverrideComponents();
         $initDI = $configurator->isInitDI();
 
         if (!file_exists($globalConfigPath)) {
@@ -95,9 +98,6 @@ class Core implements SingletonInterface
             new Container();
         }
 
-        $_SERVER['create.auto'] = true;
-        $_SERVER['core.dir'] = __DIR__;
-
         if (empty($discordOptions)) {
             throw new RuntimeException('discord options empty');
         }
@@ -119,12 +119,8 @@ class Core implements SingletonInterface
             $core->getLoop()
         );
 
-        if ($overrideComponentsFacade !== null) {
-            $overrideComponentsFacade->overrideClassList(
-                $core->components->getClassList()
-            );
-
-            $core->getContainer()->setShared('components', $overrideComponentsFacade);
+        if (!empty($overrideComponents)) {
+            $core->components->overrideClassList($overrideComponents);
         }
 
         $core->discordEventManager
