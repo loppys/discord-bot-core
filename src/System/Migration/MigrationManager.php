@@ -218,13 +218,18 @@ class MigrationManager
         return $this->createMigrationQuery($queryLink);
     }
 
+    /**
+     * @throws Exception
+     */
     public function runtimeCollectMigrations(): bool
     {
-        if (!is_dir($_SERVER['base.dir'] . '/migrations/' ?? '')) {
+        $dir = $_SERVER['base.dir'] . '/migrations/';
+
+        if (!is_dir($dir)) {
             return false;
         }
 
-        $this->collectMigrationFiles($_SERVER['base.dir'] . '/migrations/', force: true);
+        $this->collectMigrationFiles($dir);
 
         return true;
     }

@@ -29,7 +29,7 @@ abstract class AbstractFacade
         return $this->facade->get($name);
     }
 
-    public function isCreated(): bool
+    public function isCreated(string $name): bool
     {
         return $this->facade->isCreated($name);
     }

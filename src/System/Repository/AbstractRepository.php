@@ -59,13 +59,15 @@ abstract class AbstractRepository implements RepositoryInterface
             return null;
         }
 
+        $entity->setColumns($this->columnMap);
+
         $data = $this->get($criteria, 1);
 
         if (empty($data)) {
             return $entity;
         }
 
-        return $entity->setColumns($this->columnMap)->setEntityData($data);
+        return $entity->setEntityData($data);
     }
 
     public function createEntityByArray(array $data): ?AbstractEntity
