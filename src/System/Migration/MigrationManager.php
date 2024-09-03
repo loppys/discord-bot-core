@@ -44,7 +44,7 @@ class MigrationManager
     /**
      * @throws Exception
      */
-    public function run(): void
+    public function run(): bool
     {
         foreach ($this->queryList as $query) {
             if (!$query instanceof MigrationQuery) {
@@ -57,12 +57,14 @@ class MigrationManager
                 );
             }
         }
+
+        return true;
     }
 
     /**
      * @throws Exception
      */
-    public function collectMigrationFiles(string $dirPath = '', bool $checkHash = true): bool
+    public function collectMigrationFiles(string $dirPath = '', bool $checkHash = true, bool $force = false): bool
     {
         if (!is_dir($dirPath)) {
             return false;
@@ -84,6 +86,10 @@ class MigrationManager
 
             if ($query !== null) {
                 $this->addMigrationQuery($query);
+
+                if ($force) {
+                    $this->migrationExecute($query);
+                }
             } else {
                 $failCountFile++;
             }
@@ -168,12 +174,13 @@ class MigrationManager
         }
 
         if ($query->getType() === MigrationTypeStorage::PHP) {
-            $result = $query->getPhpMigration()->up();
+            $query->getPhpMigration()->up();
 
-            if (empty($result->mig_file) && empty($result->mig_hash)) {
-                $result->mig_file = $query->getMigrationFile();
-                $result->mig_hash = $query->getFileHash();
-            }
+            $result = new MigrationResult();
+
+            $result->mig_file = $query->getMigrationFile();
+            $result->mig_hash = $query->getFileHash();
+            $result->mig_query = 'php_migration';
         } else {
             $result = new MigrationResult();
 
@@ -209,5 +216,16 @@ class MigrationManager
     private function reCreateMigrationQuery(string $queryLink): null|MigrationQuery
     {
         return $this->createMigrationQuery($queryLink);
+    }
+
+    public function runtimeCollectMigrations(): bool
+    {
+        if (!is_dir($_SERVER['base.dir'] . '/migrations/' ?? '')) {
+            return false;
+        }
+
+        $this->collectMigrationFiles($_SERVER['base.dir'] . '/migrations/', force: true);
+
+        return true;
     }
 }

@@ -22,6 +22,8 @@ class QueueManager implements QueueManagerInterface
     public function addTask(QueueTaskInterface $queueTask): static
     {
         if ($this->hasTask($queueTask->getName())) {
+            $this->queue[$queueTask->getQueueGroup()][$queueTask->getName()] = $queueTask;
+
             return $this;
         }
 

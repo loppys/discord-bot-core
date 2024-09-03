@@ -13,13 +13,14 @@ class AccessRepository extends AbstractRepository
 
     protected array $columnMap = [
         'ac_usr_id',
-        'ac_group_lvl'
+        'ac_srv_id',
+        'ac_group_lvl',
     ];
 
     protected string $entityClass = AccessEntity::class;
 
-    public function createEntity(string $dataKey, string $column = ''): ?AccessEntity
+    public function createEntity(array $criteria = []): ?AccessEntity
     {
-        return parent::createEntity($dataKey, $column);
+        return parent::createEntity($criteria);
     }
 }

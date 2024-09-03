@@ -8,12 +8,17 @@ return [
     'system-check' => [
         'handler' => [SystemCheck::class, 'run'],
         'arguments' => null,
-        'interval' => 900,
+        'interval' => 360,
         'type' => TaskTypeStorage::PERIODIC,
     ],
     'migration-execute' => [
         'handler' => [MigrationManager::class, 'run'],
         'type' => TaskTypeStorage::PERIODIC,
-        'interval' => 3600,
+        'interval' => 240,
+    ],
+    'migration-runtime-collect' => [
+        'handler' => [MigrationManager::class, 'runtimeCollectMigrations'],
+        'type' => TaskTypeStorage::PERIODIC,
+        'interval' => 120,
     ],
 ];

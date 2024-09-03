@@ -5,7 +5,6 @@ namespace Discord\Bot\System\Repository;
 use Discord\Bot\System\Repository\DTO\DependencyTable;
 use Discord\Bot\System\Repository\Entity\AbstractEntity;
 use Discord\Bot\System\Interfaces\RepositoryInterface;
-use Discord\Bot\System\Traits\EntityCreatorTrait;
 use Discord\Bot\System\DBAL;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
@@ -13,8 +12,6 @@ use Doctrine\DBAL\Query\QueryBuilder;
 
 abstract class AbstractRepository implements RepositoryInterface
 {
-    use EntityCreatorTrait;
-
     protected string $table = '';
 
     protected string $primaryKey = 'id';
@@ -42,10 +39,15 @@ abstract class AbstractRepository implements RepositoryInterface
         array_unshift($this->columnMap, $this->primaryKey);
     }
 
+    public function getTable(): string
+    {
+        return $this->table;
+    }
+
     /**
      * @throws Exception
      */
-    public function createEntity(string $dataKey, string $column = ''): mixed
+    public function createEntity(array $criteria = []): mixed
     {
         if (!class_exists($this->entityClass)) {
             return null;
@@ -57,17 +59,28 @@ abstract class AbstractRepository implements RepositoryInterface
             return null;
         }
 
-        if (empty($column)) {
-            $column = $this->primaryKey;
-        }
-
-        $data = $this->get([$column => $dataKey], 1);
+        $data = $this->get($criteria, 1);
 
         if (empty($data)) {
             return $entity;
         }
 
         return $entity->setColumns($this->columnMap)->setEntityData($data);
+    }
+
+    public function createEntityByArray(array $data): ?AbstractEntity
+    {
+        if (!class_exists($this->entityClass)) {
+            return null;
+        }
+
+        $entity = new $this->entityClass;
+
+        if ($entity instanceof AbstractEntity) {
+            return $entity->setColumns($this->columnMap)->setEntityData($data);
+        }
+
+        return null;
     }
 
     /**
@@ -93,6 +106,14 @@ abstract class AbstractRepository implements RepositoryInterface
             if (!in_array($col, $this->columnMap, true)) {
                 unset($data[$col]);
             }
+
+            if (empty($val)) {
+                unset($data[$col]);
+            }
+
+            if ($col === $this->primaryKey) {
+                unset($data[$col]);
+            }
         }
 
         return (bool)$this->connection->createQueryBuilder()
@@ -108,6 +129,11 @@ abstract class AbstractRepository implements RepositoryInterface
     public function getRow(mixed $id): array|bool
     {
         return $this->get([$this->primaryKey => $id]);
+    }
+
+    public function getRowByCriteria(array $criteria = []): array|bool
+    {
+        return $this->get($criteria, 1);
     }
 
     /**
@@ -171,12 +197,23 @@ abstract class AbstractRepository implements RepositoryInterface
      */
     public function getAll(): array
     {
-        return $this->connection->createQueryBuilder()
+        $data = $this->connection->createQueryBuilder()
             ->select('*')
             ->from($this->table)
             ->executeQuery()
             ->fetchAllAssociative()
-            ;
+        ;
+
+        $result = [];
+        foreach ($data as $item) {
+            $entity = $this->createEntityByArray($item);
+
+            if ($entity !== null) {
+                $result[] = $entity;
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -290,13 +327,13 @@ abstract class AbstractRepository implements RepositoryInterface
 
         $firstKey = array_key_first($conditionColumns);
         foreach ($conditionColumns as $key => $column) {
-            $clm = $dependencyTable->getAliasTable() . '.' . $key;
-            $val = $this->db->escapeValue($column);
+            $clm = $dependencyTable->getAliasTable() . '.' . $this->db->escapeValue($key, true);
+            $val = $dependencyTable->getFromAlias() . '.' . $this->db->escapeValue($column, true);
 
             if ($firstKey === $column) {
                 $condition = $queryBuilder->expr()->eq($clm, $val);
             } else {
-                $condition .= 'AND ' . $queryBuilder->expr()->eq($clm, $val);
+                $condition .= $queryBuilder->expr()->eq($clm, $val);
             }
         }
 

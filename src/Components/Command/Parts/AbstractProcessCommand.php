@@ -3,31 +3,47 @@
 namespace Discord\Bot\Components\Command\Parts;
 
 use Discord\Bot\Components\Access\Storage\BaseAccessStorage;
+use Discord\Bot\Components\Command\DTO\Command;
+use Discord\Bot\Components\Command\DTO\ExecuteResult;
 use Discord\Bot\Components\Command\Interfaces\CascadeCommandInterface;
+use Discord\Bot\Core;
 use Discord\Bot\System\DBAL;
 use Discord\Builders\MessageBuilder;
 use Discord\Discord;
+use Discord\Http\Exceptions\NoPermissionsException;
 use Discord\Parts\Channel\Message;
+use Discord\Parts\Interactions\Interaction;
+use Doctrine\DBAL\Exception;
 use Loader\System\Container;
 
 abstract class AbstractProcessCommand
 {
+    public bool $isNewScheme = false;
+
     public static int $access = BaseAccessStorage::USER;
 
-    public Message|null $message = null;
+    protected Command $command;
 
-    /*
-     * [arguments, flags]
-     */
-    public array $arguments = [];
+    protected Message|null $message = null;
 
-    public DBAL $db;
+    protected array $arguments = [];
 
-    public Discord $discord;
+    protected array $flags = [];
+
+    protected DBAL $db;
+
+    protected Discord $discord;
+
+    protected Interaction $interaction;
 
     protected Container $container;
 
     private array $errorList = [];
+
+    /**
+     * @var array<ExecuteResult>
+     */
+    private array $resultList = [];
 
     public function __construct(Discord $discord, DBAL $db)
     {
@@ -36,23 +52,27 @@ abstract class AbstractProcessCommand
         $this->db = $db;
     }
 
-    public function process(...$arguments): void
-    {
-        if (is_array($arguments[0])) {
-            $this->arguments = $arguments[0] ?: [];
-        }
-
-        if ($arguments[1] instanceof Message) {
-            $this->message = $arguments[1];
-        }
+    /**
+     * @throws NoPermissionsException
+     * @throws Exception
+     */
+    public function process(
+        Message $message,
+        Command $command
+    ): bool {
+        $this->message = $message;
+        $this->command = $command;
+        $this->flags = $command->getFlags();
+        $this->arguments = $command->getArguments();
 
         if ($this->message === null) {
-            return;
+            return false;
         }
 
         if (!$this->execute()) {
+            // На случай, если будет переопределение
             if ($this->message === null) {
-                return;
+                return false;
             }
 
             $errorList = $this->getErrorList();
@@ -60,7 +80,7 @@ abstract class AbstractProcessCommand
             if (empty($errorList)) {
                 $this->message->channel->sendMessage('Что-то пошло не так!');
 
-                return;
+                return false;
             }
 
             foreach ($errorList as $error) {
@@ -74,34 +94,23 @@ abstract class AbstractProcessCommand
             }
         }
 
-        ConsoleMessageHelper::showTechMessage("execute_command_class", static::class);
-
+        $commandComponent = Core::getInstance()->components->command;
         if ($this instanceof CascadeCommandInterface) {
-            foreach ($this::COMMAND_LIST as $name => $class) {
-                if (!is_string($name) || !class_exists($class)) {
+            foreach ($this::COMMAND_LIST as $name) {
+                if (!is_string($name)) {
                     continue;
                 }
 
-                $cmdManager = CommandManager::getInstance();
+                $this->message->content = str_replace(
+                    $this->command->getCommandName(),
+                    $name, $this->message->content
+                );
 
-                $command = $cmdManager::parse($this->message->content);
-
-                if ($command === null) {
-                    continue;
-                }
-
-                $command
-                    ->setClass($class)
-                    ->setName($name)
-                ;
-
-                $currentClass = static::class;
-                $currentUsername = $this->message->author->username;
-                $this->message->author->username = "cascade:call => {$class}|initiator => {$currentClass}|user => {$currentUsername}";
-
-                $cmdManager->execute($command, $this->message);
+                $this->resultList[$name] = $commandComponent->execute($this->message);
             }
         }
+
+        return true;
     }
 
     public function addError(string $error, bool $reply = false): static
@@ -112,6 +121,14 @@ abstract class AbstractProcessCommand
         ];
 
         return $this;
+    }
+
+    /**
+     * @return array<ExecuteResult>
+     */
+    public function getResultList(): array
+    {
+        return $this->resultList;
     }
 
     public function getErrorList(): array
@@ -132,6 +149,9 @@ abstract class AbstractProcessCommand
         return false;
     }
 
+    /**
+     * @throws NoPermissionsException
+     */
     public function success(string|MessageBuilder $message = null, bool $reply = false): bool
     {
         if ($this->message !== null && !empty($message)) {
@@ -143,6 +163,13 @@ abstract class AbstractProcessCommand
         }
 
         return true;
+    }
+
+    public function setInteraction(Interaction $interaction): void
+    {
+        $this->isNewScheme = true;
+
+        $this->interaction = $interaction;
     }
 
     abstract protected function execute(): bool;
