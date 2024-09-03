@@ -65,10 +65,6 @@ abstract class AbstractProcessCommand
         $this->flags = $command->getFlags();
         $this->arguments = $command->getArguments();
 
-        if ($this->message === null) {
-            return false;
-        }
-
         if (!$this->execute()) {
             // На случай, если будет переопределение
             if ($this->message === null) {

@@ -9,10 +9,9 @@ class UserRepository extends AbstractRepository
 {
     protected string $table = 'users';
 
-    protected string $primaryKey = 'id';
+    protected string $primaryKey = 'usr_id';
 
     protected array $columnMap = [
-        'usr_id',
         'usr_stat_id',
     ];
 

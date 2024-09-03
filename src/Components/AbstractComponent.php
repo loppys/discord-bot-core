@@ -9,9 +9,9 @@ use Discord\Bot\Scheduler\Parts\Executor;
 use Discord\Bot\Scheduler\Storage\QueueGroupStorage;
 use Discord\Bot\System\Interfaces\ComponentInterface;
 use Discord\Bot\System\ComponentsFacade;
+use Discord\Discord;
 use Doctrine\DBAL\Exception;
 use Discord\Bot\Core;
-use Discord\Discord;
 
 abstract class AbstractComponent implements ComponentInterface
 {
