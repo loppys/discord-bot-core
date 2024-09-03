@@ -9,4 +9,12 @@ interface QueueTaskInterface
     public function getQueueGroup(): string;
 
     public function setQueueGroup(string $group): static;
+
+    public function addLaunch(): static;
+
+    public function getLaunchesCount(): int;
+
+    public function setMaxLaunches(int $maxLaunches): static;
+
+    public function getMaxLaunches(): int;
 }

@@ -19,6 +19,11 @@ abstract class AbstractTask implements TaskInterface, TaskExecuteInterface, Inst
 
     protected Executor $executor;
 
+    protected int $launchesCount = 0;
+
+    // 0 - неограниченно
+    protected int $maxLaunches = 0;
+
     public function __construct()
     {
         if (empty($this->name)) {
@@ -26,6 +31,30 @@ abstract class AbstractTask implements TaskInterface, TaskExecuteInterface, Inst
                 uniqid('task.', true)
             );
         }
+    }
+
+    public function addLaunch(): static
+    {
+        $this->launchesCount++;
+
+        return $this;
+    }
+
+    public function getLaunchesCount(): int
+    {
+        return $this->launchesCount;
+    }
+
+    public function setMaxLaunches(int $maxLaunches): static
+    {
+        $this->maxLaunches = $maxLaunches;
+
+        return $this;
+    }
+
+    public function getMaxLaunches(): int
+    {
+        return $this->maxLaunches;
     }
 
     public function setName(string $name): static

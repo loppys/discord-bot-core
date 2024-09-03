@@ -67,6 +67,17 @@ class ScheduleManager
         return $this;
     }
 
+    public function removeTask(string $name): static
+    {
+        if (!empty($this->taskInLoop[$name])) {
+            $this->periodicTaskStop($name);
+        }
+
+        $this->queueManager->removeTaskByName($name);
+
+        return $this;
+    }
+
     public function getTaskByName(string $name): ?AbstractTask
     {
         $task = $this->queueManager->getTask($name);
@@ -86,11 +97,14 @@ class ScheduleManager
     {
         /** @var AbstractTask $task */
         foreach ($this->queueManager->compareQueue() as $task) {
+            $maxLaunches = $task->getMaxLaunches();
+            if ($maxLaunches > 0 && $task->getLaunchesCount() > $maxLaunches) {
+                trigger_error("task {$task->getName()} has reached its run limit");
+            }
+
             if ($task instanceof PeriodicTask && !empty($this->loop)) {
                 if (!empty($this->taskInLoop[$task->getName()]) && !$this->queueManager->hasTask($task->getName())) {
-                    $this->loop->cancelTimer($this->taskInLoop[$task->getName()]);
-
-                    unset($this->taskInLoop[$task->getName()]);
+                    $this->periodicTaskStop($task->getName());
 
                     continue;
                 }
@@ -110,8 +124,6 @@ class ScheduleManager
                 } else {
                     trigger_error("{$task->getName()} interval not found");
                 }
-
-                continue;
             }
 
             if (!$this->executeTask($task)) {
@@ -124,7 +136,7 @@ class ScheduleManager
     {
         print PHP_EOL . "execute task {$task->getName()}" . PHP_EOL;
 
-        return $task->getExecutor()->execute();
+        return $task->addLaunch()->getExecutor()->execute();
     }
 
     public function initConfigTasks(string $absolutePath): bool
@@ -223,5 +235,18 @@ class ScheduleManager
     public function setLoop(LoopInterface $loop): void
     {
         $this->loop = $loop;
+    }
+
+    public function periodicTaskStop(string $name): bool
+    {
+        if (empty($this->taskInLoop[$name])) {
+            return false;
+        }
+
+        $this->loop->cancelTimer($this->taskInLoop[$name]);
+
+        unset($this->taskInLoop[$name]);
+
+        return true;
     }
 }
