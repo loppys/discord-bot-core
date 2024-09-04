@@ -133,6 +133,9 @@ abstract class AbstractRepository implements RepositoryInterface
         return $this->get([$this->primaryKey => $id]);
     }
 
+    /**
+     * @throws Exception
+     */
     public function getRowByCriteria(array $criteria = []): array|bool
     {
         return $this->get($criteria, 1);
@@ -196,15 +199,26 @@ abstract class AbstractRepository implements RepositoryInterface
 
     /**
      * @throws Exception
+     * @return AbstractEntity[]
      */
-    public function getAll(): array
+    public function getAll(array $criteria = []): array
     {
-        $data = $this->connection->createQueryBuilder()
+        $qb = $this->connection->createQueryBuilder()
             ->select('*')
             ->from($this->table)
-            ->executeQuery()
-            ->fetchAllAssociative()
         ;
+
+        foreach ($criteria as $k => $v) {
+            if (array_key_first($criteria) === $k) {
+                $qb->where($qb->expr()->eq($k, $this->db->escapeValue($v)));
+
+                continue;
+            }
+
+            $qb->andWhere($qb->expr()->eq($k, $this->db->escapeValue($v)));
+        }
+
+        $data = $qb->executeQuery()->fetchAllAssociative();
 
         $result = [];
         foreach ($data as $item) {

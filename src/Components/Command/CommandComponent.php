@@ -14,7 +14,9 @@ use Discord\Parts\Channel\Message;
 use Discord\Parts\Interactions\Interaction;
 use Doctrine\DBAL\Exception;
 
-
+/**
+ * @method CommandService getService()
+ */
 class CommandComponent extends AbstractComponent
 {
     protected array $migrationList = [
@@ -63,10 +65,5 @@ class CommandComponent extends AbstractComponent
     public function addCommand(array|CommandEntity $command): bool
     {
         return $this->getService()->addCommand($command);
-    }
-
-    public function getService(): CommandService
-    {
-        return $this->service;
     }
 }

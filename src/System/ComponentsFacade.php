@@ -4,14 +4,8 @@ namespace Discord\Bot\System;
 
 use Discord\Bot\Components\Access\AccessComponent;
 use Discord\Bot\Components\Command\CommandComponent;
-use Discord\Bot\Components\Event\EventComponent;
-use Discord\Bot\Components\Interaction\InteractionComponent;
-use Discord\Bot\Components\License\LicenseComponent;
-use Discord\Bot\Components\Management\ManagementComponent;
 use Discord\Bot\Components\Settings\SettingsComponent;
-use Discord\Bot\Components\Stat\StatComponent;
 use Discord\Bot\Components\User\UserComponent;
-use Discord\Bot\Components\Voice\VoiceComponent;
 use Discord\Bot\System\Interfaces\ComponentInterface;
 use Discord\Bot\System\Facade\AbstractFacade;
 use ReflectionException;
@@ -22,6 +16,7 @@ use RuntimeException;
  * @property AccessComponent $access
  * @property CommandComponent $command
  * @property UserComponent $user
+ * @property SettingsComponent $settings
  */
 class ComponentsFacade extends AbstractFacade
 {
@@ -32,6 +27,7 @@ class ComponentsFacade extends AbstractFacade
         'access' => AccessComponent::class,
         'command' => CommandComponent::class,
         'user' => UserComponent::class,
+        'settings' => SettingsComponent::class,
     ];
 
     /**

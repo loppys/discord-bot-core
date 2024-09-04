@@ -32,7 +32,7 @@ abstract class AbstractEntity implements ArrayAccess, Iterator
                 continue;
             }
 
-            $this->entityData[$column] = $data;
+            $this->{$column} = $data;
         }
 
         $this->rewind();
@@ -54,6 +54,11 @@ abstract class AbstractEntity implements ArrayAccess, Iterator
 
     public function __get(string $name): mixed
     {
+        $method = 'get' . lcfirst($name);
+        if (method_exists($this, $method)) {
+            return $this->{$method}();
+        }
+
         if (property_exists($this, $name)) {
             return $this->{$name};
         }
@@ -68,6 +73,13 @@ abstract class AbstractEntity implements ArrayAccess, Iterator
     public function __set(string $name, $value): void
     {
         $this->entityData[$name] = $value;
+
+        $method = 'set' . lcfirst($name);
+        if (method_exists($this, $method)) {
+            $this->{$method}($name);
+
+            return;
+        }
 
         if (property_exists($this, $name)) {
             $this->{$name} = $value;

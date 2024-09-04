@@ -7,6 +7,10 @@ use Discord\Bot\Components\Command\Entity\CommandEntity;
 use Discord\Bot\System\Repository\Entity\AbstractEntity;
 use Discord\Bot\System\Repository\Storage\JoinTypeStorage;
 
+/**
+ * @method CommandEntity|null createEntity(array $criteria = [])
+ * @method CommandEntity|null createEntityByArray(array $data)
+ */
 class CommandRepository extends AbstractRepository
 {
     protected string $table = 'commands';
@@ -20,9 +24,4 @@ class CommandRepository extends AbstractRepository
     ];
 
     protected string $entityClass = CommandEntity::class;
-
-    public function createEntity(array $criteria = []): ?CommandEntity
-    {
-        return parent::createEntity($criteria);
-    }
 }

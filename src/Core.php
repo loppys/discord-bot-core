@@ -4,6 +4,7 @@ namespace Discord\Bot;
 
 use Discord\Bot\System\Discord\DiscordEventManager;
 use Discord\Bot\System\DBAL;
+use Discord\Bot\System\EventHandler;
 use Discord\Bot\System\Migration\MigrationManager;
 use Discord\Bot\System\Traits\ContainerInjection;
 use Discord\Bot\System\Traits\SingletonTrait;
@@ -29,7 +30,6 @@ class Core implements SingletonInterface
     public function __construct(
         MigrationManager $migrationManager,
         ScheduleManager $scheduleManager,
-        ComponentsFacade $componentFacade,
         DiscordEventManager $discordEventManager,
         DBAL $db
     ) {
@@ -45,7 +45,6 @@ class Core implements SingletonInterface
         }
 
         $this->getContainer()
-            ->setShared('components', $componentFacade)
             ->setShared('scheduleManager', $scheduleManager)
             ->setShared('migrationManager', $migrationManager)
             ->setShared('discordEventManager', $discordEventManager)
@@ -110,6 +109,14 @@ class Core implements SingletonInterface
         if (!is_object($core)) {
             throw new RuntimeException('Create core fail');
         }
+
+        $core->setEventHandler(
+            $core->getContainer()->createObject(EventHandler::class)
+        );
+
+        $core->getContainer()->setShared(
+            'components', $core->getContainer()->createObject(ComponentsFacade::class)
+        );
 
         $core->setDiscord($discord);
 
@@ -185,5 +192,12 @@ class Core implements SingletonInterface
     public function getLoop(): LoopInterface
     {
         return $this->loop;
+    }
+
+    public function setEventHandler(EventHandler $eventHandler): static
+    {
+        $this->getContainer()->setShared('eventHandler', $eventHandler);
+
+        return $this;
     }
 }

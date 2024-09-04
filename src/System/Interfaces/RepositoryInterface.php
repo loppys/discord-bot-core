@@ -46,7 +46,7 @@ interface RepositoryInterface
     /**
      * @throws Exception
      */
-    public function getAll(): array;
+    public function getAll(array $criteria = []): array;
 
     /**
      * @throws Exception

@@ -7,13 +7,14 @@ use Discord\Bot\Components\Command\Services\CommandService;
 use Discord\Bot\Scheduler\Parts\DefaultTask;
 use Discord\Bot\Scheduler\Parts\Executor;
 use Discord\Bot\Scheduler\Storage\QueueGroupStorage;
+use Discord\Bot\System\Events\AbstractSystemEventHandle;
 use Discord\Bot\System\Interfaces\ComponentInterface;
 use Discord\Bot\System\ComponentsFacade;
 use Discord\Discord;
 use Doctrine\DBAL\Exception;
 use Discord\Bot\Core;
 
-abstract class AbstractComponent implements ComponentInterface
+abstract class AbstractComponent extends AbstractSystemEventHandle implements ComponentInterface
 {
     protected ComponentsFacade $components;
 
@@ -43,6 +44,8 @@ abstract class AbstractComponent implements ComponentInterface
      */
     public function __construct(mixed $service)
     {
+        parent::__construct();
+
         $core = Core::getInstance();
 
         $this->service = $service;
@@ -112,5 +115,8 @@ abstract class AbstractComponent implements ComponentInterface
         return $this->migrationList;
     }
 
-    abstract public function getService(): mixed;
+    public function getService(): mixed
+    {
+        return $this->service;
+    }
 }
