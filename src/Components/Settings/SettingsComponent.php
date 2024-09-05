@@ -4,12 +4,14 @@ namespace Discord\Bot\Components\Settings;
 
 use Discord\Bot\Components\AbstractComponent;
 use Discord\Bot\Components\Settings\Entity\Setting;
+use Discord\Bot\Components\Settings\Events\SettingEventListener;
 use Discord\Bot\Components\Settings\Services\SettingsService;
 use Discord\Bot\Scheduler\Storage\TaskTypeStorage;
 use Doctrine\DBAL\Exception;
 
 /**
  * @method SettingsService getService()
+ * @method self updateSetting(string $name, string $guild, array $data = [])
  */
 class SettingsComponent extends AbstractComponent
 {
@@ -25,6 +27,10 @@ class SettingsComponent extends AbstractComponent
         ],
     ];
 
+    protected array $_events = [
+        SettingEventListener::class
+    ];
+
     public function __construct(SettingsService $service)
     {
         parent::__construct($service);
@@ -33,9 +39,19 @@ class SettingsComponent extends AbstractComponent
     /**
      * @throws Exception
      */
-    protected function addSetting(array|Setting $setting): static
+    public function addSetting(array|Setting $setting): static
     {
         $this->getService()->addSetting($setting);
+
+        return $this;
+    }
+
+    /**
+     * @throws Exception
+     */
+    protected function updateSettingEventable(string $name, string $guild, array $data = []): static
+    {
+        $this->getService()->updateSetting($name, $guild, $data);
 
         return $this;
     }

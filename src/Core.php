@@ -4,7 +4,7 @@ namespace Discord\Bot;
 
 use Discord\Bot\System\Discord\DiscordEventManager;
 use Discord\Bot\System\DBAL;
-use Discord\Bot\System\EventHandler;
+use Discord\Bot\System\Events\EventDispatcher;
 use Discord\Bot\System\Migration\MigrationManager;
 use Discord\Bot\System\Traits\ContainerInjection;
 use Discord\Bot\System\Traits\SingletonTrait;
@@ -110,8 +110,8 @@ class Core implements SingletonInterface
             throw new RuntimeException('Create core fail');
         }
 
-        $core->setEventHandler(
-            $core->getContainer()->createObject(EventHandler::class)
+        $core->setEventDispatcher(
+            $core->getContainer()->createObject(EventDispatcher::class)
         );
 
         $core->getContainer()->setShared(
@@ -194,9 +194,9 @@ class Core implements SingletonInterface
         return $this->loop;
     }
 
-    public function setEventHandler(EventHandler $eventHandler): static
+    public function setEventDispatcher(EventDispatcher $eventDispatcher): static
     {
-        $this->getContainer()->setShared('eventHandler', $eventHandler);
+        $this->getContainer()->setShared('eventDispatcher', $eventDispatcher);
 
         return $this;
     }
