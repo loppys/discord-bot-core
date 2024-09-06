@@ -13,6 +13,7 @@ use Discord\Bot\System\ComponentsFacade;
 use Discord\Discord;
 use Doctrine\DBAL\Exception;
 use Discord\Bot\Core;
+use ReflectionException;
 
 abstract class AbstractComponent extends AbstractSystemEventHandle implements ComponentInterface
 {
@@ -41,6 +42,7 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
 
     /**
      * @throws Exception
+     * @throws ReflectionException
      */
     public function __construct(mixed $service)
     {
