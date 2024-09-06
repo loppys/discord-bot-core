@@ -23,7 +23,7 @@ abstract class AbstractSystemEventHandle
         /** @var EventDispatcher $eventDispatcher */
         $this->eventDispatcher = Container::getInstance()->getShared('eventDispatcher');
 
-        foreach ($this->_events as $name => $listener) {
+        foreach ($this->_events as $listener => $item) {
             if (is_string($listener)) {
                 if (class_exists($listener)) {
                     $listener = Container::getInstance()->createObject($listener);
@@ -32,7 +32,15 @@ abstract class AbstractSystemEventHandle
                 }
             }
 
-            $this->eventDispatcher->addListener($name, $listener);
+            if (is_array($item)) {
+                foreach ($item as $event) {
+                    $this->eventDispatcher->addListener($event, $listener);
+                }
+            }
+
+            if (is_string($item)) {
+                $this->eventDispatcher->addListener($item, $listener);
+            }
         }
     }
 

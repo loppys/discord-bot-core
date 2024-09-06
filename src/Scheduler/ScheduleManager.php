@@ -100,6 +100,10 @@ class ScheduleManager
             $maxLaunches = $task->getMaxLaunches();
             if ($maxLaunches > 0 && $task->getLaunchesCount() > $maxLaunches) {
                 trigger_error("task {$task->getName()} has reached its run limit");
+
+                $this->removeTask($task->getName());
+
+                continue;
             }
 
             if ($task instanceof PeriodicTask && !empty($this->loop)) {

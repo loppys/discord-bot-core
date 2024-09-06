@@ -8,6 +8,7 @@ use Discord\Bot\Scheduler\Interface\TaskInterface;
 use Discord\Bot\Scheduler\Storage\QueueGroupStorage;
 use Discord\Bot\Scheduler\Storage\TaskTypeStorage;
 use Loader\System\Container;
+use ReflectionException;
 
 abstract class AbstractTask implements TaskInterface, TaskExecuteInterface, InstanceAccessInterface
 {
@@ -98,6 +99,9 @@ abstract class AbstractTask implements TaskInterface, TaskExecuteInterface, Inst
         return $this;
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function getExecutor(): Executor
     {
         if (empty($this->executor)) {

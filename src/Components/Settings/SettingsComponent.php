@@ -11,7 +11,7 @@ use Doctrine\DBAL\Exception;
 
 /**
  * @method SettingsService getService()
- * @method self updateSetting(string $name, string $guild, array $data = [])
+ * @method bool updateSetting(string $name, string $guild, array $data = [])
  */
 class SettingsComponent extends AbstractComponent
 {
@@ -28,7 +28,10 @@ class SettingsComponent extends AbstractComponent
     ];
 
     protected array $_events = [
-        SettingEventListener::class
+        SettingEventListener::class => [
+            'before.updateSetting',
+            'after.updateSetting'
+        ],
     ];
 
     public function __construct(SettingsService $service)
@@ -49,10 +52,8 @@ class SettingsComponent extends AbstractComponent
     /**
      * @throws Exception
      */
-    protected function updateSettingEventable(string $name, string $guild, array $data = []): static
+    protected function updateSettingEventable(string $name, string $guild, array $data = []): bool
     {
-        $this->getService()->updateSetting($name, $guild, $data);
-
-        return $this;
+        return $this->getService()->updateSetting($name, $guild, $data);
     }
 }

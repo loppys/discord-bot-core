@@ -61,7 +61,7 @@ class SettingsService
             return false;
         }
 
-        if ($setting->getStgSystem()) {
+        if ($setting->getStg_system()) {
             return false;
         }
 
