@@ -56,12 +56,11 @@ class SettingEventListener extends AbstractEventListener
             'stl_id' => $this->lastLogId
         ]);
 
+        $this->lastLogId = null;
+
         if ($entity !== null) {
-            $this->lastLogId = null;
-
             $entity->stl_after = $setting?->toArray() ?? [];
-
-            $this->settingsLogRepository->saveByEntity($entity);
+            $this->settingsLogRepository->updateByEntity($entity, ['stl_after']);
         }
     }
 }

@@ -172,6 +172,33 @@ abstract class AbstractRepository implements RepositoryInterface
     /**
      * @throws Exception
      */
+    public function updateByEntity(AbstractEntity $entity, array $updateKeys = []): bool
+    {
+        if (!in_array($this->primaryKey, $entity->getColumns(), true)) {
+            return false;
+        }
+
+        $id = $entity->getDataByName($this->primaryKey);
+
+        if (empty($id)) {
+            return false;
+        }
+
+        $data = [];
+        if (!empty($updateKeys)) {
+            foreach ($updateKeys as $key => $val) {
+                $data[$key] = $val;
+            }
+        } else {
+            $data = $entity->toArray();
+        }
+
+        return $this->updateByPrimaryKey($id, $data);
+    }
+
+    /**
+     * @throws Exception
+     */
     public function has(array $criteria = []): bool
     {
         if (empty($criteria)) {

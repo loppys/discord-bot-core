@@ -25,6 +25,11 @@ abstract class AbstractEntity implements ArrayAccess, Iterator
         return $this->getEntityData();
     }
 
+    public function getDataByName(string $name): mixed
+    {
+        return $this->entityData[$name] ?? null;
+    }
+
     public function setEntityData(array $entityData): static
     {
         foreach ($entityData as $column => $data) {
