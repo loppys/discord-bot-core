@@ -16,7 +16,8 @@ class UserRepository extends AbstractRepository
     protected string $primaryKey = 'usr_id';
 
     protected array $columnMap = [
-        'usr_stat_id',
+        'usr_hidden',
+        'usr_system'
     ];
 
     protected string $entityClass = User::class;
