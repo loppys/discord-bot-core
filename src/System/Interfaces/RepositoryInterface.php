@@ -2,6 +2,7 @@
 
 namespace Discord\Bot\System\Interfaces;
 
+use Discord\Bot\System\Repository\Entity\AbstractEntity;
 use Doctrine\DBAL\Exception;
 
 interface RepositoryInterface
@@ -36,6 +37,11 @@ interface RepositoryInterface
     /**
      * @throws Exception
      */
+    public function updateByEntity(AbstractEntity $entity, array $updateKeys = []): bool;
+
+    /**
+     * @throws Exception
+     */
     public function has(array $criteria = []): bool;
 
     /**
@@ -46,7 +52,7 @@ interface RepositoryInterface
     /**
      * @throws Exception
      */
-    public function getAll(): array;
+    public function getAll(array $criteria = []): array;
 
     /**
      * @throws Exception

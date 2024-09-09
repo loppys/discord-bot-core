@@ -15,5 +15,5 @@ abstract class Migration
         $this->db = Core::getInstance()->db;
     }
 
-    abstract public function up(): MigrationResult;
+    abstract public function up(): void;
 }

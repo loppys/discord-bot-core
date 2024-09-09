@@ -9,6 +9,9 @@ use Discord\Bot\Components\User\Repositories\UserRepository;
 use Discord\Bot\Components\User\Services\UserService;
 use Doctrine\DBAL\Exception;
 
+/**
+ * @method UserService getService()
+ */
 class UserComponent extends AbstractComponent
 {
     protected array $migrationList = [
@@ -44,8 +47,8 @@ class UserComponent extends AbstractComponent
         return $this->getService()->registerUser($id, $server, $group);
     }
 
-    public function getService(): UserService
+    public function updateUser(string $userId, array $updateData = []): bool
     {
-        return $this->service;
+        return $this->getService()->updateUser($userId, $updateData);
     }
 }

@@ -24,6 +24,16 @@ abstract class AbstractFacade
         return $this;
     }
 
+    public function get(string $name): mixed
+    {
+        return $this->facade->get($name);
+    }
+
+    public function isCreated(string $name): bool
+    {
+        return $this->facade->isCreated($name);
+    }
+
     public function __get($name): mixed
     {
         return $this->facade->get($name);

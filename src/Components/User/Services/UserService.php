@@ -82,4 +82,15 @@ class UserService
             'usr_id' => $userId
         ]);
     }
+
+    public function updateUser(string $userId, array $updateData = []): bool
+    {
+        if (empty($updateData)) {
+            return false;
+        }
+
+        return $this->repository->update($updateData, [
+            'usr_id' => $userId
+        ]);
+    }
 }

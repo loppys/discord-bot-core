@@ -4,6 +4,7 @@ namespace Discord\Bot;
 
 use Discord\Bot\System\Discord\DiscordEventManager;
 use Discord\Bot\System\DBAL;
+use Discord\Bot\System\Events\EventDispatcher;
 use Discord\Bot\System\Migration\MigrationManager;
 use Discord\Bot\System\Traits\ContainerInjection;
 use Discord\Bot\System\Traits\SingletonTrait;
@@ -29,7 +30,6 @@ class Core implements SingletonInterface
     public function __construct(
         MigrationManager $migrationManager,
         ScheduleManager $scheduleManager,
-        ComponentsFacade $componentFacade,
         DiscordEventManager $discordEventManager,
         DBAL $db
     ) {
@@ -45,7 +45,6 @@ class Core implements SingletonInterface
         }
 
         $this->getContainer()
-            ->setShared('components', $componentFacade)
             ->setShared('scheduleManager', $scheduleManager)
             ->setShared('migrationManager', $migrationManager)
             ->setShared('discordEventManager', $discordEventManager)
@@ -61,9 +60,12 @@ class Core implements SingletonInterface
      */
     public static function create(Configurator $configurator): static
     {
+        $_SERVER['create.auto'] = true;
+        $_SERVER['core.dir'] = __DIR__;
+
         $globalConfigPath = $configurator->getGlobalConfigPath();
         $discordOptions = $configurator->getDiscordOptions();
-        $overrideComponentsFacade = $configurator->getOverrideComponentsFacade();
+        $overrideComponents = $configurator->getOverrideComponents();
         $initDI = $configurator->isInitDI();
 
         if (!file_exists($globalConfigPath)) {
@@ -95,9 +97,6 @@ class Core implements SingletonInterface
             new Container();
         }
 
-        $_SERVER['create.auto'] = true;
-        $_SERVER['core.dir'] = __DIR__;
-
         if (empty($discordOptions)) {
             throw new RuntimeException('discord options empty');
         }
@@ -111,6 +110,14 @@ class Core implements SingletonInterface
             throw new RuntimeException('Create core fail');
         }
 
+        $core->setEventDispatcher(
+            $core->getContainer()->createObject(EventDispatcher::class)
+        );
+
+        $core->getContainer()->setShared(
+            'components', $core->getContainer()->createObject(ComponentsFacade::class)
+        );
+
         $core->setDiscord($discord);
 
         $core->components->initComponents();
@@ -119,12 +126,8 @@ class Core implements SingletonInterface
             $core->getLoop()
         );
 
-        if ($overrideComponentsFacade !== null) {
-            $overrideComponentsFacade->overrideClassList(
-                $core->components->getClassList()
-            );
-
-            $core->getContainer()->setShared('components', $overrideComponentsFacade);
+        if (!empty($overrideComponents)) {
+            $core->components->overrideClassList($overrideComponents);
         }
 
         $core->discordEventManager
@@ -189,5 +192,12 @@ class Core implements SingletonInterface
     public function getLoop(): LoopInterface
     {
         return $this->loop;
+    }
+
+    public function setEventDispatcher(EventDispatcher $eventDispatcher): static
+    {
+        $this->getContainer()->setShared('eventDispatcher', $eventDispatcher);
+
+        return $this;
     }
 }

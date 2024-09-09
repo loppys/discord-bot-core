@@ -9,6 +9,8 @@ abstract class AbstractEntity implements ArrayAccess, Iterator
 {
     protected array $columns = [];
 
+    protected array $otherColumns = [];
+
     protected array $entityData = [];
 
     private int $iterationKey = 0;
@@ -18,14 +20,24 @@ abstract class AbstractEntity implements ArrayAccess, Iterator
         $this->entityData = $entityData;
     }
 
+    public function toArray(): array
+    {
+        return $this->getEntityData();
+    }
+
+    public function getDataByName(string $name): mixed
+    {
+        return $this->entityData[$name] ?? null;
+    }
+
     public function setEntityData(array $entityData): static
     {
         foreach ($entityData as $column => $data) {
-            if (!in_array($column, $this->columns, true)) {
+            if (!in_array($column, $this->otherColumns, true) && !in_array($column, $this->columns, true)) {
                 continue;
             }
 
-            $this->entityData[$column] = $data;
+            $this->{$column} = $data;
         }
 
         $this->rewind();
@@ -35,7 +47,7 @@ abstract class AbstractEntity implements ArrayAccess, Iterator
 
     public function setColumns(array $columns): static
     {
-        $this->columns = $columns;
+        $this->columns = array_merge($columns, $this->otherColumns);
 
         return $this;
     }
@@ -47,6 +59,11 @@ abstract class AbstractEntity implements ArrayAccess, Iterator
 
     public function __get(string $name): mixed
     {
+        $method = 'get' . lcfirst($name);
+        if (method_exists($this, $method)) {
+            return $this->{$method}();
+        }
+
         if (property_exists($this, $name)) {
             return $this->{$name};
         }
@@ -61,6 +78,13 @@ abstract class AbstractEntity implements ArrayAccess, Iterator
     public function __set(string $name, $value): void
     {
         $this->entityData[$name] = $value;
+
+        $method = 'set' . lcfirst($name);
+        if (method_exists($this, $method)) {
+            $this->{$method}($name);
+
+            return;
+        }
 
         if (property_exists($this, $name)) {
             $this->{$name} = $value;

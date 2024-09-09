@@ -39,6 +39,11 @@ abstract class AbstractRepository implements RepositoryInterface
         array_unshift($this->columnMap, $this->primaryKey);
     }
 
+    public function getTable(): string
+    {
+        return $this->table;
+    }
+
     /**
      * @throws Exception
      */
@@ -54,17 +59,23 @@ abstract class AbstractRepository implements RepositoryInterface
             return null;
         }
 
+        $entity->setColumns($this->columnMap);
+
         $data = $this->get($criteria, 1);
 
         if (empty($data)) {
             return $entity;
         }
 
-        return $entity->setColumns($this->columnMap)->setEntityData($data);
+        return $entity->setEntityData($data);
     }
 
     public function createEntityByArray(array $data): ?AbstractEntity
     {
+        if (!class_exists($this->entityClass)) {
+            return null;
+        }
+
         $entity = new $this->entityClass;
 
         if ($entity instanceof AbstractEntity) {
@@ -97,6 +108,14 @@ abstract class AbstractRepository implements RepositoryInterface
             if (!in_array($col, $this->columnMap, true)) {
                 unset($data[$col]);
             }
+
+            if (empty($val)) {
+                unset($data[$col]);
+            }
+
+            if ($col === $this->primaryKey) {
+                unset($data[$col]);
+            }
         }
 
         return (bool)$this->connection->createQueryBuilder()
@@ -112,6 +131,14 @@ abstract class AbstractRepository implements RepositoryInterface
     public function getRow(mixed $id): array|bool
     {
         return $this->get([$this->primaryKey => $id]);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function getRowByCriteria(array $criteria = []): array|bool
+    {
+        return $this->get($criteria, 1);
     }
 
     /**
@@ -145,6 +172,33 @@ abstract class AbstractRepository implements RepositoryInterface
     /**
      * @throws Exception
      */
+    public function updateByEntity(AbstractEntity $entity, array $updateKeys = []): bool
+    {
+        if (!in_array($this->primaryKey, $entity->getColumns(), true)) {
+            return false;
+        }
+
+        $id = $entity->getDataByName($this->primaryKey);
+
+        if (empty($id)) {
+            return false;
+        }
+
+        $data = [];
+        if (!empty($updateKeys)) {
+            foreach ($updateKeys as $key => $val) {
+                $data[$key] = $val;
+            }
+        } else {
+            $data = $entity->toArray();
+        }
+
+        return $this->updateByPrimaryKey($id, $data);
+    }
+
+    /**
+     * @throws Exception
+     */
     public function has(array $criteria = []): bool
     {
         if (empty($criteria)) {
@@ -172,15 +226,26 @@ abstract class AbstractRepository implements RepositoryInterface
 
     /**
      * @throws Exception
+     * @return AbstractEntity[]
      */
-    public function getAll(): array
+    public function getAll(array $criteria = []): array
     {
-        $data = $this->connection->createQueryBuilder()
+        $qb = $this->connection->createQueryBuilder()
             ->select('*')
             ->from($this->table)
-            ->executeQuery()
-            ->fetchAllAssociative()
         ;
+
+        foreach ($criteria as $k => $v) {
+            if (array_key_first($criteria) === $k) {
+                $qb->where($qb->expr()->eq($k, $this->db->escapeValue($v)));
+
+                continue;
+            }
+
+            $qb->andWhere($qb->expr()->eq($k, $this->db->escapeValue($v)));
+        }
+
+        $data = $qb->executeQuery()->fetchAllAssociative();
 
         $result = [];
         foreach ($data as $item) {
@@ -305,13 +370,13 @@ abstract class AbstractRepository implements RepositoryInterface
 
         $firstKey = array_key_first($conditionColumns);
         foreach ($conditionColumns as $key => $column) {
-            $clm = $dependencyTable->getAliasTable() . '.' . $key;
-            $val = $this->db->escapeValue($column);
+            $clm = $dependencyTable->getAliasTable() . '.' . $this->db->escapeValue($key, true);
+            $val = $dependencyTable->getFromAlias() . '.' . $this->db->escapeValue($column, true);
 
             if ($firstKey === $column) {
                 $condition = $queryBuilder->expr()->eq($clm, $val);
             } else {
-                $condition .= 'AND ' . $queryBuilder->expr()->eq($clm, $val);
+                $condition .= $queryBuilder->expr()->eq($clm, $val);
             }
         }
 

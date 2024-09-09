@@ -7,13 +7,16 @@ use Discord\Bot\Components\Command\DTO\ExecuteResult;
 use Discord\Bot\Components\Command\Entity\CommandEntity;
 use Discord\Bot\Components\Command\Repositories\CommandRepository;
 use Discord\Bot\Components\Command\Services\CommandService;
+use Discord\Bot\Scheduler\QueueManager;
 use Discord\Bot\Scheduler\Storage\TaskTypeStorage;
 use Discord\Http\Exceptions\NoPermissionsException;
 use Discord\Parts\Channel\Message;
 use Discord\Parts\Interactions\Interaction;
 use Doctrine\DBAL\Exception;
 
-
+/**
+ * @method CommandService getService()
+ */
 class CommandComponent extends AbstractComponent
 {
     protected array $migrationList = [
@@ -21,10 +24,15 @@ class CommandComponent extends AbstractComponent
     ];
 
     protected array $scheduleTasks = [
-        'system-check' => [
+        'sync-commands' => [
             'handler' => [CommandService::class, 'syncCommands'],
             'interval' => 900,
             'type' => TaskTypeStorage::PERIODIC,
+        ],
+        'command-migration' => [
+            'handler' => [CommandService::class, 'executeCommandMigration'],
+            'interval' => 1800,
+            'type' => TaskTypeStorage::PERIODIC
         ],
     ];
 
@@ -57,10 +65,5 @@ class CommandComponent extends AbstractComponent
     public function addCommand(array|CommandEntity $command): bool
     {
         return $this->getService()->addCommand($command);
-    }
-
-    public function getService(): CommandService
-    {
-        return $this->service;
     }
 }

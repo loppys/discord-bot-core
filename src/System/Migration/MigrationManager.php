@@ -44,7 +44,7 @@ class MigrationManager
     /**
      * @throws Exception
      */
-    public function run(): void
+    public function run(): bool
     {
         foreach ($this->queryList as $query) {
             if (!$query instanceof MigrationQuery) {
@@ -57,6 +57,8 @@ class MigrationManager
                 );
             }
         }
+
+        return true;
     }
 
     /**
@@ -172,12 +174,13 @@ class MigrationManager
         }
 
         if ($query->getType() === MigrationTypeStorage::PHP) {
-            $result = $query->getPhpMigration()->up();
+            $query->getPhpMigration()->up();
 
-            if (empty($result->mig_file) && empty($result->mig_hash)) {
-                $result->mig_file = $query->getMigrationFile();
-                $result->mig_hash = $query->getFileHash();
-            }
+            $result = new MigrationResult();
+
+            $result->mig_file = $query->getMigrationFile();
+            $result->mig_hash = $query->getFileHash();
+            $result->mig_query = 'php_migration';
         } else {
             $result = new MigrationResult();
 
@@ -213,5 +216,21 @@ class MigrationManager
     private function reCreateMigrationQuery(string $queryLink): null|MigrationQuery
     {
         return $this->createMigrationQuery($queryLink);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function runtimeCollectMigrations(): bool
+    {
+        $dir = $_SERVER['base.dir'] . '/migrations/';
+
+        if (!is_dir($dir)) {
+            return false;
+        }
+
+        $this->collectMigrationFiles($dir);
+
+        return true;
     }
 }

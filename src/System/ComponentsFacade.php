@@ -4,14 +4,9 @@ namespace Discord\Bot\System;
 
 use Discord\Bot\Components\Access\AccessComponent;
 use Discord\Bot\Components\Command\CommandComponent;
-use Discord\Bot\Components\Event\EventComponent;
-use Discord\Bot\Components\Interaction\InteractionComponent;
-use Discord\Bot\Components\License\LicenseComponent;
-use Discord\Bot\Components\Management\ManagementComponent;
 use Discord\Bot\Components\Settings\SettingsComponent;
 use Discord\Bot\Components\Stat\StatComponent;
 use Discord\Bot\Components\User\UserComponent;
-use Discord\Bot\Components\Voice\VoiceComponent;
 use Discord\Bot\System\Interfaces\ComponentInterface;
 use Discord\Bot\System\Facade\AbstractFacade;
 use ReflectionException;
@@ -20,15 +15,10 @@ use RuntimeException;
 
 /**
  * @property AccessComponent $access
- * @property CommandComponent $command;
- * @property EventComponent $event;
- * @property InteractionComponent $interactionComponent;
- * @property LicenseComponent $license;
- * @property ManagementComponent $management;
- * @property SettingsComponent $settings;
- * @property StatComponent $stat;
- * @property UserComponent $user;
- * @property VoiceComponent $voice;
+ * @property CommandComponent $command
+ * @property UserComponent $user
+ * @property SettingsComponent $settings
+ * @property StatComponent $stat
  */
 class ComponentsFacade extends AbstractFacade
 {
@@ -37,15 +27,10 @@ class ComponentsFacade extends AbstractFacade
      */
     protected array $initClassList = [
         'access' => AccessComponent::class,
-        'command' => CommandComponent::class,
-//        'event' => EventComponent::class,
-//        'interactionComponent' => InteractionComponent::class,
-//        'license' => LicenseComponent::class,
-//        'management' => ManagementComponent::class,
-//        'settings' => SettingsComponent::class,
-//        'stat' => StatComponent::class,
         'user' => UserComponent::class,
-        'voice' => VoiceComponent::class,
+        'settings' => SettingsComponent::class,
+        'command' => CommandComponent::class,
+        'stat' => StatComponent::class,
     ];
 
     /**

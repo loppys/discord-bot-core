@@ -27,7 +27,7 @@ class SystemCheck
      */
     private array $runCount = [];
 
-    public function run(): void
+    public function run(): bool
     {
         foreach ($this->tasks as $task) {
             if (!method_exists($this, $task)) {
@@ -59,6 +59,8 @@ class SystemCheck
 
             $this->runCount[$task]++;
         }
+
+        return true;
     }
 
     public function discordRoleSync(): bool

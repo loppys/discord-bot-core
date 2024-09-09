@@ -8,6 +8,9 @@ use Discord\Bot\Components\Access\Services\BaseAccessService;
 use Discord\Bot\Components\Access\Storage\BaseAccessStorage;
 use Doctrine\DBAL\Exception;
 
+/**
+ * @method BaseAccessService getService()
+ */
 class AccessComponent extends AbstractComponent
 {
     protected array $migrationList = [
@@ -30,18 +33,13 @@ class AccessComponent extends AbstractComponent
     /**
      * @throws Exception
      */
-    public function updateUserAccessGroup(string $userId, int $newAccessGroup): bool
+    public function updateUserAccessGroup(string $userId, string $server, int $newAccessGroup): bool
     {
-        return $this->getService()->updateUserAccessGroup($userId, $newAccessGroup);
+        return $this->getService()->updateUserAccessGroup($userId, $server, $newAccessGroup);
     }
 
     public function userIsRoot(int $userAccess): bool
     {
         return $this->getService()->isRoot($userAccess);
-    }
-
-    public function getService(): BaseAccessService
-    {
-        return $this->service;
     }
 }

@@ -1,0 +1,15 @@
+CREATE TABLE `__stat_messages` (
+`stm_id` INT(10) NOT NULL AUTO_INCREMENT,
+`stm_st_id` INT(10) NULL DEFAULT NULL,
+`stm_msg_count` INT(10) NOT NULL DEFAULT '0',
+`stm_bad_msg` INT(10) NOT NULL DEFAULT '0',
+`stm_create` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+`stm_update` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+PRIMARY KEY (`stm_id`) USING BTREE,
+INDEX `FK____stat_msg` (`stm_st_id`) USING BTREE,
+CONSTRAINT `FK____stat_msg` FOREIGN KEY (`stm_st_id`) REFERENCES `__stat` (`st_id`) ON UPDATE NO ACTION ON DELETE CASCADE
+)
+    COLLATE='utf8mb3_general_ci'
+ENGINE=InnoDB
+;
+

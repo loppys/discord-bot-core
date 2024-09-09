@@ -2,13 +2,20 @@
 
 namespace Discord\Bot\Components;
 
-use Discord\Bot\Core;
-use Discord\Bot\System\ComponentsFacade;
+use Discord\Bot\Components\Command\DTO\CommandMigration;
+use Discord\Bot\Components\Command\Services\CommandService;
+use Discord\Bot\Scheduler\Parts\DefaultTask;
+use Discord\Bot\Scheduler\Parts\Executor;
+use Discord\Bot\Scheduler\Storage\QueueGroupStorage;
+use Discord\Bot\System\Events\AbstractSystemEventHandle;
 use Discord\Bot\System\Interfaces\ComponentInterface;
+use Discord\Bot\System\ComponentsFacade;
 use Discord\Discord;
 use Doctrine\DBAL\Exception;
+use Discord\Bot\Core;
+use ReflectionException;
 
-abstract class AbstractComponent implements ComponentInterface
+abstract class AbstractComponent extends AbstractSystemEventHandle implements ComponentInterface
 {
     protected ComponentsFacade $components;
 
@@ -29,10 +36,18 @@ abstract class AbstractComponent implements ComponentInterface
     protected array $migrationList = [];
 
     /**
+     * @var array<CommandMigration>
+     */
+    protected array $commands = [];
+
+    /**
      * @throws Exception
+     * @throws ReflectionException
      */
     public function __construct(mixed $service)
     {
+        parent::__construct();
+
         $core = Core::getInstance();
 
         $this->service = $service;
@@ -54,7 +69,38 @@ abstract class AbstractComponent implements ComponentInterface
         }
 
         foreach ($this->scheduleTasks as $name => $scheduleTask) {
-            $core->scheduleManager->initTaskByArray($scheduleTask, $name ?? '');
+            if (!is_string($name)) {
+                $name = null;
+            }
+
+            $core->scheduleManager->initTaskByArray(
+                $scheduleTask,
+                is_int($name) ? '' : ($name ?? '')
+            );
+        }
+
+        if (!empty($this->commands)) {
+            if (!$this->components->isCreated('command')) {
+                $executor = (new Executor())
+                    ->setCallable([CommandService::class, 'executeCommandMigration'])
+                    ->setArguments($this->commands)
+                ;
+
+                $task = (new DefaultTask())
+                    ->setName('component-commands')
+                    ->setExecutor($executor)
+                    ->setQueueGroup(QueueGroupStorage::FIRST)
+                ;
+
+                $core->scheduleManager->addTask($task);
+            } else {
+                foreach ($this->commands as $command) {
+                    $this->components->command
+                        ->getService()
+                        ->addCommandMigration($command)
+                    ;
+                }
+            }
         }
     }
 
@@ -71,5 +117,8 @@ abstract class AbstractComponent implements ComponentInterface
         return $this->migrationList;
     }
 
-    abstract public function getService(): mixed;
+    public function getService(): mixed
+    {
+        return $this->service;
+    }
 }

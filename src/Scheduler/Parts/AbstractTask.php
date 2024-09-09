@@ -7,6 +7,8 @@ use Discord\Bot\Scheduler\Interface\TaskExecuteInterface;
 use Discord\Bot\Scheduler\Interface\TaskInterface;
 use Discord\Bot\Scheduler\Storage\QueueGroupStorage;
 use Discord\Bot\Scheduler\Storage\TaskTypeStorage;
+use Loader\System\Container;
+use ReflectionException;
 
 abstract class AbstractTask implements TaskInterface, TaskExecuteInterface, InstanceAccessInterface
 {
@@ -16,20 +18,49 @@ abstract class AbstractTask implements TaskInterface, TaskExecuteInterface, Inst
 
     protected string $queueGroup = QueueGroupStorage::DEFAULT;
 
-    protected AbstractTask $instance;
-
     protected Executor $executor;
+
+    protected int $launchesCount = 0;
+
+    // 0 - неограниченно
+    protected int $maxLaunches = 0;
 
     public function __construct()
     {
         if (empty($this->name)) {
-            $this->name = uniqid('task.', true);
+            $this->setName(
+                uniqid('task.', true)
+            );
         }
+    }
+
+    public function addLaunch(): static
+    {
+        $this->launchesCount++;
+
+        return $this;
+    }
+
+    public function getLaunchesCount(): int
+    {
+        return $this->launchesCount;
+    }
+
+    public function setMaxLaunches(int $maxLaunches): static
+    {
+        $this->maxLaunches = $maxLaunches;
+
+        return $this;
+    }
+
+    public function getMaxLaunches(): int
+    {
+        return $this->maxLaunches;
     }
 
     public function setName(string $name): static
     {
-        $this->setName($name);
+        $this->name = $name;
 
         return $this;
     }
@@ -58,7 +89,7 @@ abstract class AbstractTask implements TaskInterface, TaskExecuteInterface, Inst
 
     public function getInstance(): static
     {
-        return $this->instance;
+        return $this;
     }
 
     public function setExecutor(Executor $executor): static
@@ -68,10 +99,31 @@ abstract class AbstractTask implements TaskInterface, TaskExecuteInterface, Inst
         return $this;
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function getExecutor(): Executor
     {
         if (empty($this->executor)) {
             $this->executor = (new Executor())->setCallable([$this, 'execute']);
+        }
+
+        [$object, $method] = $this->executor->getCallable();
+
+        if (!is_object($object)) {
+            if (class_exists($object)) {
+                $object = Container::getInstance()->createObject($object);
+            } else {
+                $object = $this;
+            }
+
+            if (!method_exists($object, $method)) {
+                $method = 'execute';
+
+                $this->executor->setArguments([]);
+            }
+
+            $this->executor->setCallable([$object, $method]);
         }
 
         return $this->executor;

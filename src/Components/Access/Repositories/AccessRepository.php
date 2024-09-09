@@ -5,6 +5,10 @@ namespace Discord\Bot\Components\Access\Repositories;
 use Discord\Bot\System\Repository\AbstractRepository;
 use Discord\Bot\Components\Access\Entity\AccessEntity;
 
+/**
+ * @method AccessEntity|null createEntity(array $criteria = [])
+ * @method AccessEntity|null createEntityByArray(array $data)
+ */
 class AccessRepository extends AbstractRepository
 {
     protected string $table = 'access';
@@ -18,9 +22,4 @@ class AccessRepository extends AbstractRepository
     ];
 
     protected string $entityClass = AccessEntity::class;
-
-    public function createEntity(array $criteria = []): ?AccessEntity
-    {
-        return parent::createEntity($criteria);
-    }
 }
