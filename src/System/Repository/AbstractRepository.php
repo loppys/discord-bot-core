@@ -274,7 +274,7 @@ abstract class AbstractRepository implements RepositoryInterface
     /**
      * @throws Exception
      */
-    protected function get(array $criteria = [], ?int $limit = null): array|bool
+    public function get(array $criteria = [], ?int $limit = null): array|bool
     {
         $qb = $this->connection->createQueryBuilder()
             ->select('t1.*')
