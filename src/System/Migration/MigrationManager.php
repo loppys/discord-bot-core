@@ -3,16 +3,23 @@
 namespace Discord\Bot\System\Migration;
 
 use Discord\Bot\System\DBAL;
+use Discord\Bot\System\Helpers\ConsoleLogger;
 use Discord\Bot\System\Migration\Entity\MigrationResult;
 use Discord\Bot\System\Migration\Parts\Migration;
 use Discord\Bot\System\Migration\Parts\MigrationQuery;
 use Discord\Bot\System\Migration\Repository\MigrationRepository;
 use Discord\Bot\System\Migration\Storage\MigrationTypeStorage;
+use Discord\Bot\System\Repository\DTO\Query;
+use Discord\Bot\System\Storages\TypeSystemStat;
+use Discord\Bot\System\Traits\SystemStatAccessTrait;
 use Doctrine\DBAL\Exception;
 use RuntimeException;
 
 class MigrationManager
 {
+    use SystemStatAccessTrait;
+    use SystemStatAccessTrait;
+
     protected DBAL $db;
 
     protected MigrationRepository $repository;
@@ -27,6 +34,8 @@ class MigrationManager
      */
     public function __construct(MigrationRepository $repository, DBAL $db)
     {
+        ConsoleLogger::showMessage('create Migration Manager');
+
         $this->repository = $repository;
         $this->db = $db;
 
@@ -52,9 +61,7 @@ class MigrationManager
             }
 
             if ($this->migrationExecute($query)) {
-                $this->removeMigrationQuery(
-                    $query->getFileHash()
-                );
+                $this->removeMigrationByQuery($query);
             }
         }
 
@@ -84,14 +91,16 @@ class MigrationManager
 
             $query = $this->createMigrationQuery($dirPath . $file, $checkHash);
 
-            if ($query !== null) {
-                $this->addMigrationQuery($query);
-
-                if ($force) {
-                    $this->migrationExecute($query);
-                }
-            } else {
+            if ($query === null) {
                 $failCountFile++;
+
+                continue;
+            }
+
+            if ($force) {
+                if ($this->migrationExecute($query)) {
+                    $this->removeMigrationByQuery($query);
+                }
             }
         }
 
@@ -109,7 +118,7 @@ class MigrationManager
 
         $fileHash = sha1_file($queryLink);
 
-        if ($checkHash && $this->repository->has(['mig_hash' => $fileHash])) {
+        if ($checkHash && (!empty($this->queryList[$fileHash]) || $this->repository->has(['mig_hash' => $fileHash]))) {
             return null;
         }
 
@@ -161,6 +170,10 @@ class MigrationManager
      */
     public function migrationExecute(MigrationQuery $query): bool
     {
+        if ($this->repository->hasTable() && $this->repository->has(['mig_hash' => $query->getFileHash()])) {
+            return true;
+        }
+
         if ($query->getType() === MigrationTypeStorage::NONE || empty($query->getMigrationFile())) {
             return false;
         }
@@ -173,24 +186,30 @@ class MigrationManager
             }
         }
 
+        ConsoleLogger::showMessage("execute migration: {$query->getFileHash()}");
+
+        $this->getSystemStat()->add(TypeSystemStat::MIGRATIONS);
+
         if ($query->getType() === MigrationTypeStorage::PHP) {
             $query->getPhpMigration()->up();
 
-            $result = new MigrationResult();
-
-            $result->mig_file = $query->getMigrationFile();
-            $result->mig_hash = $query->getFileHash();
-            $result->mig_query = 'php_migration';
+            $result = $this->repository->createEntityByArray([
+                'mig_file' => $query->getMigrationFile(),
+                'mig_hash' => $query->getFileHash(),
+                'mig_query' => 'php_migration'
+            ]);
         } else {
-            $result = new MigrationResult();
-
             $sqlQuery = $query->getSqlQuery();
 
-            $result->mig_file = $query->getMigrationFile();
-            $result->mig_hash = $query->getFileHash();
-            $result->mig_query = $sqlQuery;
+            $this->getSystemStat()->add(TypeSystemStat::DB);
 
-            $this->db->getConnection()->executeStatement($query->getSqlQuery());
+            $sqlQueryResult = $this->db->getConnection()->executeStatement($query->getSqlQuery());
+
+            $result = $this->repository->createEntityByArray([
+                'mig_file' => $query->getMigrationFile(),
+                'mig_hash' => $query->getFileHash(),
+                'mig_query' => "{$sqlQuery} ==> {$sqlQueryResult}"
+            ]);
         }
 
         return $this->repository->saveByEntity($result);
@@ -198,16 +217,31 @@ class MigrationManager
 
     public function addMigrationQuery(MigrationQuery $query): static
     {
+        if (!empty($this->queryList[$query->getFileHash()])) {
+            return $this;
+        }
+
         $this->queryList[$query->getFileHash()] = $query;
+
+        ConsoleLogger::showMessage("add migration: {$query->getFileHash()}");
+
+        $this->getSystemStat()->add(TypeSystemStat::MIGRATIONS);
 
         return $this;
     }
 
-    public function removeMigrationQuery(string $hash): static
+    public function removeMigrationByHash(string $hash): static
     {
         unset($this->queryList[$hash]);
 
+        ConsoleLogger::showMessage("remove migration: {$hash}");
+
         return $this;
+    }
+
+    public function removeMigrationByQuery(MigrationQuery $query): static
+    {
+        return $this->removeMigrationByHash($query->getFileHash());
     }
 
     /**
@@ -223,7 +257,7 @@ class MigrationManager
      */
     public function runtimeCollectMigrations(): bool
     {
-        $dir = $_SERVER['base.dir'] . '/migrations/';
+        $dir = ($_SERVER['base.dir'] ?? '') . '/migrations/';
 
         if (!is_dir($dir)) {
             return false;

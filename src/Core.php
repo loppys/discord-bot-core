@@ -5,7 +5,16 @@ namespace Discord\Bot;
 use Discord\Bot\System\Discord\DiscordEventManager;
 use Discord\Bot\System\DBAL;
 use Discord\Bot\System\Events\EventDispatcher;
+use Discord\Bot\System\Helpers\ConsoleLogger;
+use Discord\Bot\System\License\DTO\ComponentInfo;
+use Discord\Bot\System\License\DTO\KeyPeriod;
+use Discord\Bot\System\License\LicenseManager;
+use Discord\Bot\System\License\Storages\ActivateMethodStorage;
+use Discord\Bot\System\License\Storages\KeyPrefixStorage;
+use Discord\Bot\System\Logger;
 use Discord\Bot\System\Migration\MigrationManager;
+use Discord\Bot\System\Storages\TypeSystemStat;
+use Discord\Bot\System\SystemStat;
 use Discord\Bot\System\Traits\ContainerInjection;
 use Discord\Bot\System\Traits\SingletonTrait;
 use Discord\Bot\Scheduler\ScheduleManager;
@@ -13,6 +22,7 @@ use Discord\Bot\System\ComponentsFacade;
 use Discord\Bot\System\Interfaces\SingletonInterface;
 use Discord\Discord;
 use Discord\Exceptions\IntentException;
+use Doctrine\DBAL\Exception;
 use Loader\System\Container;
 use React\EventLoop\LoopInterface;
 use RuntimeException;
@@ -54,12 +64,24 @@ class Core implements SingletonInterface
         static::$instance = $this;
     }
 
+    public static function getInstance(): static
+    {
+        /** @var Core $instance */
+        $instance = self::$instance;
+
+        $instance->systemStat->add(TypeSystemStat::CORE);
+
+        return $instance;
+    }
+
     /**
      * @throws ReflectionException
      * @throws IntentException
      */
     public static function create(Configurator $configurator): static
     {
+        ConsoleLogger::showMessage('start core create');
+
         $_SERVER['create.auto'] = true;
         $_SERVER['core.dir'] = __DIR__;
 
@@ -97,6 +119,11 @@ class Core implements SingletonInterface
             new Container();
         }
 
+        Container::getInstance()->setShared(
+            'systemStat',
+            Container::getInstance()->createObject(SystemStat::class)
+        );
+
         if (empty($discordOptions)) {
             throw new RuntimeException('discord options empty');
         }
@@ -110,6 +137,14 @@ class Core implements SingletonInterface
             throw new RuntimeException('Create core fail');
         }
 
+        $core->setLogger(
+            $core->getContainer()->createObject(Logger::class)
+        );
+
+        $core->setLicenseManager(
+            $core->getContainer()->createObject(LicenseManager::class)
+        );
+
         $core->setEventDispatcher(
             $core->getContainer()->createObject(EventDispatcher::class)
         );
@@ -120,14 +155,24 @@ class Core implements SingletonInterface
 
         $core->setDiscord($discord);
 
+        ConsoleLogger::showMessage('----------');
+        ConsoleLogger::showMessage('init default components');
         $core->components->initComponents();
+        ConsoleLogger::showMessage('----------');
+        ConsoleLogger::showMessage('default components created');
+        ConsoleLogger::showMessage('----------');
 
         $core->scheduleManager->setLoop(
             $core->getLoop()
         );
 
         if (!empty($overrideComponents)) {
+            ConsoleLogger::showMessage('----------');
+            ConsoleLogger::showMessage('init override components');
             $core->components->overrideClassList($overrideComponents);
+            ConsoleLogger::showMessage('----------');
+            ConsoleLogger::showMessage('override components created');
+            ConsoleLogger::showMessage('----------');
         }
 
         $core->discordEventManager
@@ -140,6 +185,10 @@ class Core implements SingletonInterface
                 $core->discordEventManager->registerDiscordEvent($name, $class);
             }
         }
+
+        $core->coreActivate('default');
+
+        ConsoleLogger::showMessage('core init success');
 
         return $core;
     }
@@ -155,6 +204,10 @@ class Core implements SingletonInterface
         }
 
         $this->scheduleManager->start();
+
+        $this->systemStat->view();
+
+        ConsoleLogger::showMessage('app run');
 
         $this->discord->run();
     }
@@ -196,8 +249,61 @@ class Core implements SingletonInterface
 
     public function setEventDispatcher(EventDispatcher $eventDispatcher): static
     {
+        ConsoleLogger::showMessage('init eventDispatcher');
+
         $this->getContainer()->setShared('eventDispatcher', $eventDispatcher);
 
         return $this;
+    }
+
+    public function setLogger(Logger $logger): static
+    {
+        ConsoleLogger::showMessage('init logger');
+
+        $this->getContainer()->setShared('logger', $logger);
+
+        return $this;
+    }
+
+    public function setLicenseManager(LicenseManager $licenseManager): static
+    {
+        ConsoleLogger::showMessage('init licenseManager');
+
+        $this->getContainer()->setShared('licenseManager', $licenseManager);
+
+        return $this;
+    }
+
+    public function writeLog(string $value): bool
+    {
+        return $this->logger->write($value, 'core');
+    }
+
+    public function coreActivate(string $guild = 'undefined'): void
+    {
+        $key = $this->licenseManager->getKey(
+            $guild,
+            KeyPrefixStorage::MAIN
+        );
+
+        if ($key === null) {
+            $newKey = $this->licenseManager->getActivationService()
+                ->newKey(
+                    $guild,
+                    KeyPeriod::createDefault(time(), strtotime('+30 days')),
+                    master: true
+                )
+            ;
+
+            $componentInfo = (new ComponentInfo())
+                ->setComponentName('core')
+                ->setComponentClass(Core::class)
+                ->setUseComponentClass(true)
+            ;
+
+            $newKey->setComponentInfo($componentInfo);
+
+            $this->licenseManager->activate($newKey, ActivateMethodStorage::MAIN);
+        }
     }
 }

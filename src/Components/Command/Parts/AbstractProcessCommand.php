@@ -97,9 +97,11 @@ abstract class AbstractProcessCommand
                     continue;
                 }
 
+                // Пока работает только со старой схемой вызова
                 $this->message->content = str_replace(
                     $this->command->getCommandName(),
-                    $name, $this->message->content
+                    $name,
+                    $this->message->content
                 );
 
                 $this->resultList[$name] = $commandComponent->execute($this->message);

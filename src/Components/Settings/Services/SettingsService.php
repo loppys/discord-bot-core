@@ -5,6 +5,7 @@ namespace Discord\Bot\Components\Settings\Services;
 use Discord\Bot\Components\Settings\Entity\Setting;
 use Discord\Bot\Components\Settings\Repositories\SettingsRepository;
 use Discord\Bot\Components\Settings\Storages\DefaultSettingStorage;
+use Discord\Bot\Components\Settings\Storages\SettingsTypeStorage;
 use Discord\Bot\Core;
 use Discord\Parts\Guild\Guild;
 use Doctrine\DBAL\Exception;
@@ -96,7 +97,7 @@ class SettingsService
      */
     public function getGuildSettings(string $guild): array
     {
-        return $this->settingsRepository->getAll(['stg_guild' => $guild]);
+        return $this->settingsRepository->getAll(['stg_guild' => $guild, 'stg_hidden' => false]);
     }
 
     /**
@@ -144,6 +145,14 @@ class SettingsService
                 continue;
             }
 
+            if (!empty($map['stg_value']) && is_array($map['stg_value'])) {
+                $map['stg_value'] = json_encode($map['stg_value']);
+            }
+
+            if (!empty($map['stg_value']) && is_bool($map['stg_value'])) {
+                $map['stg_value'] = (int)$map['stg_value'];
+            }
+
             $entity = $this->settingsRepository->createEntityByArray($map);
 
             if ($entity === null) {
@@ -151,6 +160,7 @@ class SettingsService
             }
 
             $entity->stg_name = $name;
+            $entity->stg_guild = $guild;
 
             $this->addSetting($entity);
         }

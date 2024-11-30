@@ -227,27 +227,32 @@ class StatService
     /**
      * @throws Exception
      */
-    public function syncUsers(): void
+    public function syncUsers(): bool
     {
         /** @var Guild $guild */
         foreach (Core::getInstance()->getDiscord()->guilds->toArray() as $guild) {
             /** @var Member $member */
             foreach ($guild->members->toArray() as $member) {
-                if (!Core::getInstance()->components->user->hasUser($member->id)) {
+                $userId = $member->id;
+                if (!Core::getInstance()->components->user->hasUser($userId)) {
                     $group = BaseAccessStorage::USER;
 
-                    if ($member->guild->owner_id === $member->id) {
+                    if ($member->guild->owner_id === $userId) {
                         $group = BaseAccessStorage::OWNER;
                     }
 
+                    if (empty($userId)) {
+                        continue;
+                    }
+
                     $user = Core::getInstance()->components->user->register(
-                        $member->id,
+                        $userId,
                         $member->guild_id,
                         $group
                     );
 
                     if ($user === null) {
-                        return;
+                        continue;
                     }
 
                     $query = new StatQuery();
@@ -263,5 +268,7 @@ class StatService
                 }
             }
         }
+
+        return true;
     }
 }

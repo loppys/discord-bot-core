@@ -4,6 +4,7 @@ namespace Discord\Bot\System\Discord;
 
 use Discord\Bot\Core;
 use Discord\Bot\System\Discord\Events\AbstractEvent;
+use Discord\Bot\System\Helpers\ConsoleLogger;
 use Loader\System\Traits\ContainerTrait;
 use Discord\Discord;
 
@@ -62,6 +63,8 @@ class DiscordEventManager
         $this->discord->on($eventName, $event->getCallable());
 
         $this->registeredEventList[$eventName] = $event;
+
+        ConsoleLogger::showMessage("register discord event: {$eventName}");
 
         return $this;
     }

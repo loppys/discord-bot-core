@@ -3,7 +3,11 @@
 namespace Discord\Bot\System\Repository\DTO;
 
 use Discord\Bot\System\Repository\Storage\JoinTypeStorage;
+use Discord\Bot\System\Repository\Schema\Table;
 
+/**
+ * @see Table
+ */
 class DependencyTable
 {
     protected string $fromTable = '';

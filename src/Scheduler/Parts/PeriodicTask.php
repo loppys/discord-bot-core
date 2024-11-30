@@ -2,10 +2,9 @@
 
 namespace Discord\Bot\Scheduler\Parts;
 
-use Discord\Bot\Scheduler\Interface\PeriodicTaskInterface;
 use Discord\Bot\Scheduler\Storage\TaskTypeStorage;
 
-class PeriodicTask extends AbstractTask implements PeriodicTaskInterface
+class PeriodicTask extends AbstractTask
 {
     protected int $type = TaskTypeStorage::PERIODIC;
 

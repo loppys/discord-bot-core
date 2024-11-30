@@ -2,17 +2,35 @@
 
 namespace Discord\Bot\System\Repository;
 
+use Discord\Bot\System\Helpers\ConsoleLogger;
+use Discord\Bot\System\Helpers\ConvertCaseHelper;
+use Discord\Bot\System\Interfaces\QueryCreatorInterface;
+use Discord\Bot\System\Repository\DTO\Criteria;
 use Discord\Bot\System\Repository\DTO\DependencyTable;
+use Discord\Bot\System\Repository\DTO\LikeCriteria;
+use Discord\Bot\System\Repository\DTO\Query;
 use Discord\Bot\System\Repository\Entity\AbstractEntity;
 use Discord\Bot\System\Interfaces\RepositoryInterface;
 use Discord\Bot\System\DBAL;
+use Discord\Bot\System\Repository\Schema\Table;
+use Discord\Bot\System\Repository\Schema\TableField;
+use Discord\Bot\System\Storages\TypeSystemStat;
+use Discord\Bot\System\Traits\SystemStatAccessTrait;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Query\QueryBuilder;
+use http\Exception\RuntimeException;
+use Discord\Bot\System\Repository\Schema\QueryBuilder as RepositoryQueryBuilder;
 
-abstract class AbstractRepository implements RepositoryInterface
+abstract class AbstractRepository implements RepositoryInterface, QueryCreatorInterface
 {
+    use SystemStatAccessTrait;
+
     protected string $table = '';
+
+    protected Table $_table;
+
+    protected bool $usePrimaryKeyWhenSave = false;
 
     protected string $primaryKey = 'id';
 
@@ -31,12 +49,34 @@ abstract class AbstractRepository implements RepositoryInterface
 
     protected DBAL $db;
 
-    public function __construct(DBAL $db)
+    protected CriteriaComparator $criteriaComparator;
+
+    private RepositoryQueryBuilder $repositoryQueryBuilder;
+
+    public function __construct(DBAL $db, CriteriaComparator $criteriaComparator)
     {
         $this->connection = $db->getConnection();
         $this->db = $db;
+        $this->criteriaComparator = $criteriaComparator;
 
         array_unshift($this->columnMap, $this->primaryKey);
+
+        $fields = [];
+        foreach ($this->columnMap as $entityField => $dbField) {
+            if (!is_string($entityField)) {
+                $entityField = ConvertCaseHelper::snakeCaseToCamelCase($dbField);
+            }
+
+            $fields[] = new TableField($entityField, $dbField);
+        }
+
+        $this->_table = new Table($this->table, $fields);
+
+        if (property_exists($this, 'tableAlias')) {
+            if (is_string($this->tableAlias)) {
+                $this->_table->setAliasTable($this->tableAlias);
+            }
+        }
     }
 
     public function getTable(): string
@@ -44,33 +84,7 @@ abstract class AbstractRepository implements RepositoryInterface
         return $this->table;
     }
 
-    /**
-     * @throws Exception
-     */
-    public function createEntity(array $criteria = []): mixed
-    {
-        if (!class_exists($this->entityClass)) {
-            return null;
-        }
-
-        $entity = new $this->entityClass();
-
-        if (!$entity instanceof AbstractEntity) {
-            return null;
-        }
-
-        $entity->setColumns($this->columnMap);
-
-        $data = $this->get($criteria, 1);
-
-        if (empty($data)) {
-            return $entity;
-        }
-
-        return $entity->setEntityData($data);
-    }
-
-    public function createEntityByArray(array $data): ?AbstractEntity
+    public function newEntity(): ?AbstractEntity
     {
         if (!class_exists($this->entityClass)) {
             return null;
@@ -78,8 +92,33 @@ abstract class AbstractRepository implements RepositoryInterface
 
         $entity = new $this->entityClass;
 
-        if ($entity instanceof AbstractEntity) {
-            return $entity->setColumns($this->columnMap)->setEntityData($data);
+        if (!$entity instanceof AbstractEntity) {
+            return null;
+        }
+
+        return $entity->setColumns($this->columnMap);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function createEntity(array $criteria = []): mixed
+    {
+        $data = $this->get($criteria, 1);
+
+        if (empty($data)) {
+            return null;
+        }
+
+        return $this->createEntityByArray($data);
+    }
+
+    public function createEntityByArray(array $data): ?AbstractEntity
+    {
+        $entity = $this->newEntity();
+
+        if ($entity !== null) {
+            return $entity->setEntityData($data);
         }
 
         return null;
@@ -104,18 +143,16 @@ abstract class AbstractRepository implements RepositoryInterface
      */
     public function save(array $data): bool
     {
-        foreach ($data as $col => $val) {
-            if (!in_array($col, $this->columnMap, true)) {
-                unset($data[$col]);
-            }
+        $this->prepareData($data);
 
-            if (empty($val)) {
-                unset($data[$col]);
-            }
+        $this->getSystemStat()->add(TypeSystemStat::DB);
 
-            if ($col === $this->primaryKey) {
-                unset($data[$col]);
-            }
+        if (array_key_exists($this->primaryKey, $data) && !$this->usePrimaryKeyWhenSave) {
+            $id = $data[$this->primaryKey];
+
+            unset($data[$this->primaryKey]);
+
+            return $this->updateByPrimaryKey($id, $data);
         }
 
         return (bool)$this->connection->createQueryBuilder()
@@ -146,6 +183,8 @@ abstract class AbstractRepository implements RepositoryInterface
      */
     public function getLastInsertId(): string|int
     {
+        $this->getSystemStat()->add(TypeSystemStat::DB);
+
         return $this->connection->lastInsertId();
     }
 
@@ -166,7 +205,9 @@ abstract class AbstractRepository implements RepositoryInterface
             return false;
         }
 
-        return (bool)$this->connection->update($this->table, $data, $criteria);
+        $this->getSystemStat()->add(TypeSystemStat::DB);
+
+        return (bool)$this->connection->update($this->table, $this->db->escapeValue($data), $criteria);
     }
 
     /**
@@ -186,8 +227,8 @@ abstract class AbstractRepository implements RepositoryInterface
 
         $data = [];
         if (!empty($updateKeys)) {
-            foreach ($updateKeys as $key => $val) {
-                $data[$key] = $val;
+            foreach ($updateKeys as $key) {
+                $data[$key] = $entity->getDataByName($key);
             }
         } else {
             $data = $entity->toArray();
@@ -213,6 +254,8 @@ abstract class AbstractRepository implements RepositoryInterface
      */
     public function dropTable(): void
     {
+        $this->getSystemStat()->add(TypeSystemStat::DB);
+
         $this->connection->createSchemaManager()->dropTable($this->table);
     }
 
@@ -221,6 +264,8 @@ abstract class AbstractRepository implements RepositoryInterface
      */
     public function hasTable(): bool
     {
+        $this->getSystemStat()->add(TypeSystemStat::DB);
+
         return $this->connection->createSchemaManager()->tableExists($this->table);
     }
 
@@ -245,6 +290,8 @@ abstract class AbstractRepository implements RepositoryInterface
             $qb->andWhere($qb->expr()->eq($k, $this->db->escapeValue($v)));
         }
 
+        $this->getSystemStat()->add(TypeSystemStat::DB);
+
         $data = $qb->executeQuery()->fetchAllAssociative();
 
         $result = [];
@@ -268,13 +315,98 @@ abstract class AbstractRepository implements RepositoryInterface
             return false;
         }
 
+        $this->getSystemStat()->add(TypeSystemStat::DB);
+
         return (bool)$this->connection->delete($this->table, $criteria);
+    }
+
+    public function getByQuery(?Query $query = null): array|bool
+    {
+        if ($query === null && empty($this->repositoryQueryBuilder)) {
+            return $this->getAll();
+        }
+
+        if (!empty($this->repositoryQueryBuilder) && $query !== null) {
+            $this->destructBuilder();
+        }
+
+        if (!empty($this->repositoryQueryBuilder)) {
+            $query = $this->repositoryQueryBuilder->flushQuery();
+            
+            $this->destructBuilder();
+        }
+
+        $qb = $this->connection->createQueryBuilder();
+
+        foreach ($query->getJoinTableList() as $table) {
+            $this->joinTable($table, $qb);
+        }
+
+        $i = 0;
+        foreach ($query->getCriteries() as $criteria) {
+            $criteriaString = $this->criteriaComparator->compare($criteria);
+
+            if ($i < 1) {
+                $qb->where($criteriaString);
+            } else {
+                if ($criteria->getSqlOperator() === 'OR') {
+                    $qb->orWhere($criteriaString);
+                } else {
+                    $qb->andWhere($criteriaString);
+                }
+            }
+
+            $i++;
+        }
+
+        $limit = $query->getLimit();
+        if ($limit > 0) {
+            $queryBuilder->setMaxResults($limit);
+        }
+
+        $this->getSystemStat()->add(TypeSystemStat::DB);
+
+        if ($limit === 1) {
+            return $qb->executeQuery()->fetchAssociative();
+        }
+
+        return $qb->executeQuery()->fetchAllAssociative();
+    }
+
+    private function joinTable(Table $table, QueryBuilder $queryBuilder): void
+    {
+        $i = 0;
+        $condition = '';
+        foreach ($table->getJoinCriteries() as $joinCriteria) {
+            $criteriaString = $this->criteriaComparator->compare($joinCriteria);
+
+            if ($i < 1) {
+                $condition .= $criteriaString;
+            } else {
+                $condition .= $joinCriteria->getSqlOperator() . ' ' . $criteriaString;
+            }
+
+            $i++;
+        }
+
+        $queryBuilder->{$table->getJoinMethod()}(
+            $this->_table->getAliasTable(),
+            $table->getTableName(),
+            $table->getAliasTable(),
+            $condition
+        );
+
+        if (!empty($table->getDependecies())) {
+            foreach ($table->getDependecies() as $dependecy) {
+                $this->joinTable($dependecy, $queryBuilder);
+            }
+        }
     }
 
     /**
      * @throws Exception
      */
-    public function get(array $criteria = [], ?int $limit = null): array|bool
+    protected function get(array $criteria = [], ?int $limit = null): array|bool
     {
         $qb = $this->connection->createQueryBuilder()
             ->select('t1.*')
@@ -282,13 +414,27 @@ abstract class AbstractRepository implements RepositoryInterface
         ;
 
         foreach ($criteria as $k => $v) {
-            if (array_key_first($criteria) === $k) {
-                $qb->where($qb->expr()->eq($k, $this->db->escapeValue($v)));
+            if ($v instanceof Criteria) {
+                if (array_key_first($criteria) === $k) {
+                    $qb->where($this->criteriaComparator->compare($v));
 
-                continue;
+                    continue;
+                }
+
+                if ($v->getSqlOperator() === 'OR') {
+                    $qb->orWhere($this->criteriaComparator->compare($v));
+                } else {
+                    $qb->andWhere($this->criteriaComparator->compare($v));
+                }
+            } else {
+                if (array_key_first($criteria) === $k) {
+                    $qb->where($qb->expr()->eq($k, $this->db->escapeValue($v)));
+
+                    continue;
+                }
+
+                $qb->andWhere($qb->expr()->eq($k, $this->db->escapeValue($v)));
             }
-
-            $qb->andWhere($qb->expr()->eq($k, $this->db->escapeValue($v)));
         }
 
         $qb->setMaxResults($limit);
@@ -296,6 +442,8 @@ abstract class AbstractRepository implements RepositoryInterface
         if (!empty($this->dependencyTableList)) {
             $qb = $this->dependencyRecursiveCreate($qb, $this->dependencyTableList);
         }
+
+        $this->getSystemStat()->add(TypeSystemStat::DB);
 
         if ($limit === 1) {
             return $qb->executeQuery()->fetchAssociative();
@@ -388,5 +536,32 @@ abstract class AbstractRepository implements RepositoryInterface
         );
 
         return $queryBuilder;
+    }
+
+    public function queryBuilder(): RepositoryQueryBuilder
+    {
+        return $this->repositoryQueryBuilder = RepositoryQueryBuilder::new($this->_table);
+    }
+
+    public function destructBuilder(): void
+    {
+        unset($this->repositoryQueryBuilder);
+    }
+
+    protected function prepareData(array &$data): void
+    {
+        foreach ($data as $col => $val) {
+            if (!in_array($col, $this->columnMap, true)) {
+                unset($data[$col]);
+            }
+
+            if (empty($val) && $val !== null) {
+                unset($data[$col]);
+            }
+
+            if ($col === $this->primaryKey && !$this->usePrimaryKeyWhenSave) {
+                unset($data[$col]);
+            }
+        }
     }
 }

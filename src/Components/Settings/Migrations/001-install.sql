@@ -1,4 +1,4 @@
-CREATE TABLE `settings` (
+CREATE TABLE IF NOT EXISTS `settings` (
 `stg_id` INT(11) NOT NULL AUTO_INCREMENT,
 `stg_guild` VARCHAR(255) NOT NULL COLLATE 'utf16_general_ci',
 `stg_name` VARCHAR(100) NOT NULL COLLATE 'utf16_general_ci',
@@ -7,6 +7,7 @@ CREATE TABLE `settings` (
 `stg_enabled` TINYINT(4) NOT NULL DEFAULT '1',
 `stg_required` TINYINT(4) NOT NULL DEFAULT '0',
 `stg_system` TINYINT(4) NOT NULL DEFAULT '0',
+`stg_hidden` TINYINT(4) NOT NULL DEFAULT '0',
 PRIMARY KEY (`stg_id`) USING BTREE,
 INDEX `stg_guild_stg_name` (`stg_guild`, `stg_name`) USING BTREE
 )

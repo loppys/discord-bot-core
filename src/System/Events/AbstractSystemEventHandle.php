@@ -52,7 +52,7 @@ abstract class AbstractSystemEventHandle
             return;
         }
 
-        $method = lcfirst($name);
+        $method = ucfirst($name);
 
         $this->eventDispatcher->dispatch("before.{$name}", "before{$method}", $arguments);
 

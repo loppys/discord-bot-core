@@ -8,8 +8,12 @@ use Discord\Bot\Scheduler\Parts\AbstractTask;
 use Discord\Bot\Scheduler\Parts\DefaultTask;
 use Discord\Bot\Scheduler\Parts\Executor;
 use Discord\Bot\Scheduler\Parts\PeriodicTask;
+use Discord\Bot\Scheduler\Storage\ExecuteSchemeStorage;
 use Discord\Bot\Scheduler\Storage\QueueGroupStorage;
 use Discord\Bot\Scheduler\Storage\TaskTypeStorage;
+use Discord\Bot\System\Helpers\ConsoleLogger;
+use Discord\Bot\System\Storages\TypeSystemStat;
+use Discord\Bot\System\Traits\SystemStatAccessTrait;
 use Loader\System\Traits\ContainerTrait;
 use React\EventLoop\LoopInterface;
 use React\EventLoop\TimerInterface;
@@ -17,6 +21,7 @@ use React\EventLoop\TimerInterface;
 class ScheduleManager
 {
     use ContainerTrait;
+    use SystemStatAccessTrait;
 
     protected int $executeInterval = 30;
 
@@ -31,6 +36,8 @@ class ScheduleManager
 
     public function __construct(QueueManager $queueManager)
     {
+        ConsoleLogger::showMessage('create Scheduler');
+
         $this->queueManager = $queueManager;
 
         $this->initConfigTasks(__DIR__ . '/config/tasks.php');
@@ -38,6 +45,8 @@ class ScheduleManager
 
     public function start(): void
     {
+        ConsoleLogger::showMessage('start Scheduler : interval = ' . $this->getExecuteInterval());
+
         $this->loop->addPeriodicTimer($this->getExecuteInterval(), function () {
             $this->execute();
         });
@@ -58,11 +67,15 @@ class ScheduleManager
 
     public function addTask(AbstractTask $task): static
     {
+        $this->getSystemStat()->add(TypeSystemStat::SCHEDULER);
+
         if ($task->getType() === TaskTypeStorage::PERIODIC && $task->getQueueGroup() !== QueueGroupStorage::PERIODIC) {
             $task->setQueueGroup(QueueGroupStorage::PERIODIC);
         }
 
         $this->queueManager->addTask($task);
+
+        ConsoleLogger::showMessage("add schedule task: {$task->getName()}");
 
         return $this;
     }
@@ -97,6 +110,12 @@ class ScheduleManager
     {
         /** @var AbstractTask $task */
         foreach ($this->queueManager->compareQueue() as $task) {
+            if ($task->isDone() && !empty($this->taskInLoop[$task->getName()])) {
+                $this->removeTask($task->getName());
+
+                continue;
+            }
+
             $maxLaunches = $task->getMaxLaunches();
             if ($maxLaunches > 0 && $task->getLaunchesCount() > $maxLaunches) {
                 trigger_error("task {$task->getName()} has reached its run limit");
@@ -120,7 +139,9 @@ class ScheduleManager
                 if ($task->getPeriodicInterval() !== 0) {
                     $timer = $this->loop->addPeriodicTimer($task->getPeriodicInterval(), function () use ($task) {
                         if (!$this->executeTask($task)) {
-                            trigger_error("fail execute {$task->getName()}");
+                            if ($task->isDone()) {
+                                trigger_error("fail execute {$task->getName()}");
+                            }
                         }
                     });
 
@@ -131,20 +152,39 @@ class ScheduleManager
             }
 
             if (!$this->executeTask($task)) {
-                trigger_error("fail execute {$task->getName()}");
+                if ($task->isDone()) {
+                    trigger_error("fail execute {$task->getName()}");
+                }
+            }
+
+            if (!$task->isDone()) {
+                $this->queueManager->addTask($task);
             }
         }
     }
 
     public function executeTask(AbstractTask $task): bool
     {
-        print PHP_EOL . "execute task {$task->getName()}" . PHP_EOL;
+        ConsoleLogger::showMessage("execute schedule task: {$task->getName()}");
 
-        return $task->addLaunch()->getExecutor()->execute();
+        $this->getSystemStat()->add(TypeSystemStat::SCHEDULER);
+
+        $result = $task->addLaunch()->getExecutor()->execute();
+
+        if (
+            ($result && $task->getType() !== TaskTypeStorage::PERIODIC)
+            && $task::SCHEME === ExecuteSchemeStorage::AUTO
+        ) {
+            $task->done();
+        }
+
+        return $result && $task->isDone();
     }
 
     public function initConfigTasks(string $absolutePath): bool
     {
+        $this->getSystemStat()->add(TypeSystemStat::SCHEDULER);
+
         if (!file_exists($absolutePath)) {
             return false;
         }
@@ -168,6 +208,8 @@ class ScheduleManager
 
     public function initTaskByArray(array $taskArray, string $name = ''): bool
     {
+        $this->getSystemStat()->add(TypeSystemStat::SCHEDULER);
+
         if (empty($taskArray['name']) && !empty($name)) {
             $taskArray['name'] = $name;
         }
