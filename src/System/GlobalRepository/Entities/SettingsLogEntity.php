@@ -11,5 +11,23 @@ use Discord\Bot\System\Repository\Entity\AbstractEntity;
  */
 class SettingsLogEntity extends AbstractEntity
 {
+    public function setStlBefore(array $value): void
+    {
+        $this->setDataByName('stl_before', json_encode($value));
+    }
 
+    public function setStlAfter(array $value): void
+    {
+        $this->setDataByName('stl_after', json_encode($value));
+    }
+
+    public function getStlBefore(): string
+    {
+        return json_decode($this->getDataByName('stl_before') ?? '', true);
+    }
+
+    public function getStlAfter(): string
+    {
+        return json_decode($this->getDataByName('stl_after') ?? '', true);
+    }
 }
