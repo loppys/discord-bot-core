@@ -13,7 +13,7 @@ use Doctrine\DBAL\Exception;
  * @method SettingsService getService()
  * @method bool updateSetting(string $name, string $guild, array $data = [])
  */
-class SettingsComponent extends AbstractComponent
+class settingscomponent extends AbstractComponent
 {
     protected array $migrationList = [
         __DIR__ . '/Migrations/'

@@ -42,9 +42,9 @@ class UserComponent extends AbstractComponent
     /**
      * @throws Exception
      */
-    public function register(string $id, string $server, int $group = BaseAccessStorage::USER): ?User
+    public function register(string $userId, string $serverId, int $group = BaseAccessStorage::USER): ?User
     {
-        return $this->getService()->registerUser($id, $server, $group);
+        return $this->getService()->registerUser($userId, $serverId, $group);
     }
 
     public function updateUser(string $userId, array $updateData = []): bool

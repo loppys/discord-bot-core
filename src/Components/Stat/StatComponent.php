@@ -16,7 +16,7 @@ class StatComponent extends AbstractComponent
     ];
 
     protected array $scheduleTasks = [
-        [
+        'stat-sync-users' => [
             'handler' => [StatService::class, 'syncUsers'],
             'interval' => 3600,
             'type' => TaskTypeStorage::PERIODIC,

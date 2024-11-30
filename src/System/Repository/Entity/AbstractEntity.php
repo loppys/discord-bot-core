@@ -3,6 +3,7 @@
 namespace Discord\Bot\System\Repository\Entity;
 
 use ArrayAccess;
+use Discord\Bot\System\Helpers\ConvertCaseHelper;
 use Iterator;
 
 abstract class AbstractEntity implements ArrayAccess, Iterator
@@ -30,10 +31,21 @@ abstract class AbstractEntity implements ArrayAccess, Iterator
         return $this->entityData[$name] ?? null;
     }
 
+    public function setDataByName(string $name, mixed $data): static
+    {
+        if (!$this->columnExists($name)) {
+            return $this;
+        }
+
+        $this->entityData[$name] = $data;
+
+        return $this;
+    }
+
     public function setEntityData(array $entityData): static
     {
         foreach ($entityData as $column => $data) {
-            if (!in_array($column, $this->otherColumns, true) && !in_array($column, $this->columns, true)) {
+            if (!$this->columnExists($column)) {
                 continue;
             }
 
@@ -59,7 +71,11 @@ abstract class AbstractEntity implements ArrayAccess, Iterator
 
     public function __get(string $name): mixed
     {
-        $method = 'get' . lcfirst($name);
+        if (!$this->columnExists($name)) {
+            return null;
+        }
+
+        $method = 'get' . ConvertCaseHelper::snakeCaseToCamelCase($name);
         if (method_exists($this, $method)) {
             return $this->{$method}();
         }
@@ -68,8 +84,8 @@ abstract class AbstractEntity implements ArrayAccess, Iterator
             return $this->{$name};
         }
 
-        if (!empty($this->entityData[$name])) {
-            return $this->entityData[$name];
+        if (!empty($this->getDataByName($name))) {
+            return $this->getDataByName($name);
         }
 
         return null;
@@ -77,11 +93,15 @@ abstract class AbstractEntity implements ArrayAccess, Iterator
 
     public function __set(string $name, $value): void
     {
-        $this->entityData[$name] = $value;
+        if (!$this->columnExists($name)) {
+            return;
+        }
 
-        $method = 'set' . lcfirst($name);
+        $this->setDataByName($name, $value);
+
+        $method = 'set' . ConvertCaseHelper::snakeCaseToCamelCase($name);
         if (method_exists($this, $method)) {
-            $this->{$method}($name);
+            $this->{$method}($value);
 
             return;
         }
@@ -144,5 +164,10 @@ abstract class AbstractEntity implements ArrayAccess, Iterator
     public function rewind(): void
     {
         $this->iterationKey = 0;
+    }
+
+    private function columnExists(string $column): bool
+    {
+        return in_array($column, $this->otherColumns, true) || in_array($column, $this->columns, true);
     }
 }

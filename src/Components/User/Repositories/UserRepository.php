@@ -13,12 +13,19 @@ class UserRepository extends AbstractRepository
 {
     protected string $table = 'users';
 
-    protected string $primaryKey = 'usr_id';
-
     protected array $columnMap = [
+        'usr_id',
         'usr_hidden',
         'usr_system'
     ];
 
     protected string $entityClass = User::class;
+
+    /**
+     * @return array
+     */
+    public function getColumnMap(): array
+    {
+        return $this->columnMap;
+    }
 }

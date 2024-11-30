@@ -11,6 +11,7 @@ use Discord\Bot\Components\Command\Repositories\CommandRepository;
 use Discord\Bot\Components\Command\Storage\CommandMigrationTypeStorage;
 use Discord\Bot\Scheduler\Interface\QueueManagerInterface;
 use Discord\Bot\Scheduler\QueueManager;
+use Discord\Bot\System\Helpers\ConsoleLogger;
 use Discord\Parts\Interactions\Command\Command as DiscordCommand;
 use Discord\Bot\Config;
 use Discord\Bot\Core;
@@ -20,6 +21,7 @@ use Discord\Parts\Guild\Guild;
 use Discord\Parts\Interactions\Interaction;
 use Doctrine\DBAL\Exception as DBException;
 use Exception;
+use Loader\System\Container;
 
 class CommandService
 {
@@ -50,23 +52,35 @@ class CommandService
             $commandEntity = $this->commandRepository->createEntityByArray($command);
 
             if (!$commandEntity instanceof CommandEntity) {
-                return false;
+                if (!$commandEntity instanceof CommandMigration) {
+                    ConsoleLogger::showMessage("command add fail 1x01: {$command->name}");
+
+                    return false;
+                }
             }
 
             $command = $commandEntity;
         }
 
         if (!$command->isCommandClassExists()) {
+            ConsoleLogger::showMessage("command add fail 1x02: {$command->name}");
+
             return false;
         }
 
         if (empty($command->name)) {
+            ConsoleLogger::showMessage("command add fail 1x03: {$command->name}");
+
             return false;
         }
 
         if ($this->commandRepository->has(['name' => $command->name])) {
+            ConsoleLogger::showMessage("command add fail 1x04: {$command->name}");
+
             return false;
         }
+
+        ConsoleLogger::showMessage("add command: {$command->name}");
 
         return $this->commandRepository->saveByEntity($command);
     }
@@ -75,7 +89,7 @@ class CommandService
      * @throws DBException
      * @throws Exception
      */
-    public function syncCommands(): void
+    public function syncCommands(): bool
     {
         $guilds = Core::getInstance()->getDiscord()->guilds->toArray();
 
@@ -103,6 +117,8 @@ class CommandService
                 }
             }
         }
+
+        return true;
     }
 
     /**
@@ -118,7 +134,7 @@ class CommandService
             return ExecuteResult::create('Команда не найдена.', '9010', false);
         }
 
-        $entity = $this->getCommandByDTO($command);
+        $entity = $this->getCommandByName($command->getCommandName());
 
         if ($entity === null) {
             return ExecuteResult::create('Не удалось создать команду.', '9011', false);
@@ -193,15 +209,6 @@ class CommandService
      * @throws Exception
      * @throws DBException
      */
-    protected function getCommandByDTO(Command $command): ?CommandEntity
-    {
-        return $this->commandRepository->createEntity(['name' => $command->getCommandName()]);
-    }
-
-    /**
-     * @throws Exception
-     * @throws DBException
-     */
     protected function hasCommand(Command $command): bool
     {
         return $this->commandRepository->has([
@@ -226,10 +233,24 @@ class CommandService
      * @return void
      * @throws DBException
      */
-    public function executeCommandMigration(?array $migrations = null): void
+    public function executeCommandMigration(?array $migrations = null): bool
     {
         /** @var CommandMigration $item */
         foreach ($migrations ?? $this->queueManager->compareQueue() as $item) {
+            if (!is_object($item)) {
+                $item = Container::getInstance()->createObject($item);
+            }
+
+            if (!$item instanceof CommandMigration) {
+                continue;
+            }
+
+            if ($this->commandRepository->has(['name' => $item->name])) {
+                continue;
+            }
+
+            ConsoleLogger::showMessage("execute command migration: {$item->class}");
+
             match ($item->getType()) {
                 CommandMigrationTypeStorage::CREATE => $this->addCommand($item),
                 CommandMigrationTypeStorage::UPDATE => $this->commandRepository->update(
@@ -238,8 +259,11 @@ class CommandService
                 ),
                 CommandMigrationTypeStorage::DELETE => $this->commandRepository->delete(
                     ['name' => $item->name]
-                )
+                ),
+                default => ConsoleLogger::showMessage("type ({$item->getType()}) not supported")
             };
         }
+
+        return true;
     }
 }
