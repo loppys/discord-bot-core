@@ -2,6 +2,7 @@
 
 namespace Discord\Bot\System;
 
+use Discord\Bot\System\Helpers\ConsoleLogger;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Connection;
 use Discord\Bot\Config;
@@ -19,6 +20,8 @@ class DBAL
 
     public function __construct()
     {
+        ConsoleLogger::showMessage('create Database adapter');
+
         $this->param = Config::getDatabaseParams();
 
         if (!empty($this->param)) {
@@ -53,6 +56,8 @@ class DBAL
         $dbName = $params['dbName'];
         $login = $params['dbLogin'];
         $password = $params['dbPassword'];
+
+        ConsoleLogger::showMessage('create new connection - ' . "{$name}:{$dbName}");
 
         $connection = DriverManager::getConnection(
             [

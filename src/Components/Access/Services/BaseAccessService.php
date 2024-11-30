@@ -29,7 +29,7 @@ class BaseAccessService
      */
     public function createAccessGroup(string $userId, string $server, int $group = BaseAccessStorage::USER): bool
     {
-        $entity = new AccessEntity();
+        $entity = $this->repository->newEntity();
 
         $entity->ac_usr_id = $userId;
         $entity->ac_group_lvl = $group;

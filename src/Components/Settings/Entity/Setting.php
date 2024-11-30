@@ -14,54 +14,57 @@ use Discord\Bot\System\Repository\Entity\AbstractEntity;
  * @property bool $stg_enabled
  * @property bool $stg_required
  * @property bool $stg_system
+ * @property bool $stg_hidden
  */
 class Setting extends AbstractEntity
 {
-    public function getStg_value(): string
+    public function getStgValue(): string
     {
-        return match ($this->stg_type) {
-            SettingsTypeStorage::SELECT => @unserialize($stg_value),
-            default => $this->stg_value,
+        return match ($this->getDataByName('stg_type')) {
+            SettingsTypeStorage::SELECT => @unserialize($this->getDataByName('stg_value')),
+            default => $this->getDataByName('stg_value'),
         };
     }
 
-    public function setStg_value(string $stg_value): void
+    public function setStgValue(string $stg_value): void
     {
-        $this->stg_value = match ($this->stg_type) {
+        $data = match ($this->getDataByName('stg_type')) {
             SettingsTypeStorage::BOOL => (bool)$stg_value,
             SettingsTypeStorage::SELECT => serialize($stg_value),
             SettingsTypeStorage::NUMBER => (int)$stg_value,
             default => $stg_value,
         };
+
+        $this->setDataByName('stg_value', $data);
     }
 
-    public function setStg_enabled(bool|int $stg_enabled): void
+    public function setStgEnabled(bool|int $stg_enabled): void
     {
-        $this->stg_enabled = (bool)$stg_enabled;
+        $this->setDataByName('stg_enabled', (bool)$stg_enabled);
     }
 
-    public function getStg_enabled(): bool
+    public function getStgEnabled(): bool
     {
-        return $this->stg_enabled;
+        return $this->getDataByName('stg_enabled');
     }
 
-    public function setStg_required(bool|int $stg_required): void
+    public function setStgRequired(bool|int $stg_required): void
     {
-        $this->stg_required = (bool)$stg_required;
+        $this->setDataByName('stg_required', (bool)$stg_required);
     }
 
-    public function getStg_required(): bool
+    public function getStgRequired(): bool
     {
-        return $this->stg_required;
+        return $this->getDataByName('stg_required');
     }
 
-    public function setStg_system(bool|int $stg_system): void
+    public function setStgSystem(bool|int $stg_system): void
     {
-        $this->stg_system = (bool)$stg_system;
+        $this->setDataByName('stg_system', (bool)$stg_system);
     }
 
-    public function getStg_system(): bool
+    public function getStgSystem(): bool
     {
-        return $this->stg_system;
+        return $this->getDataByName('stg_system');
     }
 }

@@ -39,7 +39,7 @@ class QueueManager implements QueueManagerInterface
             return false;
         }
 
-        if ($this->removeTaskByName($queueTask->getName())) {
+        if (!$this->removeTaskByName($queueTask->getName())) {
             return false;
         }
 
@@ -76,7 +76,7 @@ class QueueManager implements QueueManagerInterface
             return false;
         }
 
-        if (empty($this->queue[$taskGroup][$name])) {
+        if (empty($this->queue[$taskGroup][$name]) && empty($this->tasks[$name])) {
             return false;
         }
 
@@ -104,7 +104,7 @@ class QueueManager implements QueueManagerInterface
     /**
      * @inheritDoc
      */
-    public function compareQueue(bool $resetPeriodicTask = false): array
+    public function compareQueue(bool $resetQueue = true, bool $resetPeriodicTask = false): array
     {
         $result = [];
 
@@ -124,7 +124,9 @@ class QueueManager implements QueueManagerInterface
             $result[] = $last;
         }
 
-        $this->resetQueue($resetPeriodicTask);
+        if ($resetQueue) {
+            $this->resetQueue($resetPeriodicTask);
+        }
 
         return $result;
     }

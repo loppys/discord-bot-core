@@ -13,6 +13,4 @@ interface ExecutorInterface
     public function getArguments(): array;
 
     public function execute(): bool;
-
-    public function getInstance(): static;
 }

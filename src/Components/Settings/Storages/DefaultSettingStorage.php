@@ -14,35 +14,46 @@ class DefaultSettingStorage
 
     public const ANALISE = 'analise';
 
+    public const USE_LICENSE = 'useLicense';
+
     public const SETTING_MAP = [
         self::COMMANDS => [
-            'stg_value' => true,
             'stg_type' => SettingsTypeStorage::BOOL,
-            'stg_system' => 1
+            'stg_value' => true,
+            'stg_system' => true,
+            'stg_required' => true,
         ],
         self::EVENTS => [
-            'stg_value' => true,
             'stg_type' => SettingsTypeStorage::BOOL,
-            'stg_system' => 1
+            'stg_value' => true,
+            'stg_system' => true,
+            'stg_required' => true,
         ],
         self::DEFAULT_ROLE => [
-            'stg_value' => '',
             'stg_type' => SettingsTypeStorage::TEXT,
-            'stg_system' => 1
+            'stg_value' => '',
+            'stg_system' => true,
         ],
         self::MANAGEMENT => [
+            'stg_type' => SettingsTypeStorage::SELECT,
             'stg_value' => [
                 'text' => '',
                 'images' => '',
                 'links' => ''
             ],
-            'stg_type' => SettingsTypeStorage::SELECT,
-            'stg_system' => 1
+            'stg_system' => true,
         ],
         self::ANALISE => [
-            'stg_value' => true,
             'stg_type' => SettingsTypeStorage::BOOL,
-            'stg_system' => 1
+            'stg_value' => true,
+            'stg_system' => true,
+        ],
+        self::USE_LICENSE => [
+            'stg_type' => SettingsTypeStorage::BOOL,
+            'stg_value' => false,
+            'stg_system' => true,
+            'stg_required' => true,
+            'stg_hidden' => true,
         ],
     ];
 }

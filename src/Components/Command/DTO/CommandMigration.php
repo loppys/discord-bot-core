@@ -2,6 +2,8 @@
 
 namespace Discord\Bot\Components\Command\DTO;
 
+use Bot\App\Commands\HelpCommand;
+use Discord\Bot\Components\Access\Storage\BaseAccessStorage;
 use Discord\Bot\Components\Command\Entity\CommandEntity;
 use Discord\Bot\Components\Command\Storage\CommandMigrationTypeStorage;
 use Discord\Bot\Scheduler\Interface\QueueTaskInterface;
@@ -9,11 +11,26 @@ use Discord\Bot\Scheduler\Storage\QueueGroupStorage;
 
 class CommandMigration extends CommandEntity implements QueueTaskInterface
 {
+    public $name = '';
+
+    public $access = BaseAccessStorage::USER;
+
+    public $class = '';
+
     protected int $type = CommandMigrationTypeStorage::EMPTY;
 
-    public string $taskName = '';
+    protected string $taskName = '';
 
-    public string $queueGroup = QueueGroupStorage::DEFAULT;
+    protected string $queueGroup = QueueGroupStorage::DEFAULT;
+
+    public function __construct(array $entityData = [])
+    {
+        $entityData['name'] = $this->name;
+        $entityData['access'] = $this->access;
+        $entityData['class'] = $this->class;
+
+        parent::__construct($entityData);
+    }
 
     public function getType(): int
     {
@@ -42,5 +59,25 @@ class CommandMigration extends CommandEntity implements QueueTaskInterface
         $this->queueGroup = $group;
 
         return $this;
+    }
+
+    public function addLaunch(): static
+    {
+        return $this;
+    }
+
+    public function getLaunchesCount(): int
+    {
+        return 1;
+    }
+
+    public function setMaxLaunches(int $maxLaunches): static
+    {
+        return $this;
+    }
+
+    public function getMaxLaunches(): int
+    {
+        return 3;
     }
 }

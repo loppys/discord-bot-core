@@ -20,7 +20,7 @@ use Doctrine\DBAL\Exception;
 class CommandComponent extends AbstractComponent
 {
     protected array $migrationList = [
-        __DIR__ . '/Migrations',
+        __DIR__ . '/Migrations/',
     ];
 
     protected array $scheduleTasks = [

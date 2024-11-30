@@ -12,8 +12,6 @@ abstract class AbstractEventListener implements EventListenerInterface
             return;
         }
 
-        print PHP_EOL . "call {$methodName}" . PHP_EOL;
-
         call_user_func_array([$this, $methodName], $arguments);
     }
 }

@@ -4,10 +4,12 @@ namespace Discord\Bot\Components\Access\Repositories;
 
 use Discord\Bot\System\Repository\AbstractRepository;
 use Discord\Bot\Components\Access\Entity\AccessEntity;
+use Discord\Bot\System\Repository\Entity\AbstractEntity;
 
 /**
  * @method AccessEntity|null createEntity(array $criteria = [])
  * @method AccessEntity|null createEntityByArray(array $data)
+ * @method AccessEntity|null newEntity()
  */
 class AccessRepository extends AbstractRepository
 {

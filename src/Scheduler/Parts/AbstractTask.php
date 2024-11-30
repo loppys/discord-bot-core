@@ -2,15 +2,17 @@
 
 namespace Discord\Bot\Scheduler\Parts;
 
+use Discord\Bot\Scheduler\Interface\ExecuteSchemeInterface;
 use Discord\Bot\Scheduler\Interface\InstanceAccessInterface;
 use Discord\Bot\Scheduler\Interface\TaskExecuteInterface;
 use Discord\Bot\Scheduler\Interface\TaskInterface;
+use Discord\Bot\Scheduler\Storage\ExecuteSchemeStorage;
 use Discord\Bot\Scheduler\Storage\QueueGroupStorage;
 use Discord\Bot\Scheduler\Storage\TaskTypeStorage;
 use Loader\System\Container;
 use ReflectionException;
 
-abstract class AbstractTask implements TaskInterface, TaskExecuteInterface, InstanceAccessInterface
+abstract class AbstractTask implements TaskInterface, TaskExecuteInterface, ExecuteSchemeInterface
 {
     protected string $name = '';
 
@@ -24,6 +26,8 @@ abstract class AbstractTask implements TaskInterface, TaskExecuteInterface, Inst
 
     // 0 - неограниченно
     protected int $maxLaunches = 0;
+
+    protected bool $done = false;
 
     public function __construct()
     {
@@ -82,16 +86,6 @@ abstract class AbstractTask implements TaskInterface, TaskExecuteInterface, Inst
         return $this;
     }
 
-    public function getClass(): string
-    {
-        return static::class;
-    }
-
-    public function getInstance(): static
-    {
-        return $this;
-    }
-
     public function setExecutor(Executor $executor): static
     {
         $this->executor = $executor;
@@ -144,6 +138,27 @@ abstract class AbstractTask implements TaskInterface, TaskExecuteInterface, Inst
     public function setQueueGroup(string $group): static
     {
         $this->queueGroup = $group;
+
+        return $this;
+    }
+
+    public function isDone(): bool
+    {
+        return $this->done;
+    }
+
+    public function done(): static
+    {
+        $this->done = true;
+
+        return $this;
+    }
+
+    public function defineExecuteScheme(int $scheme = ExecuteSchemeStorage::AUTO): static
+    {
+        if ($scheme !== self::SCHEME) {
+            define(self::SCHEME, $scheme);
+        }
 
         return $this;
     }

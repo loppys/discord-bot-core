@@ -9,4 +9,6 @@ class JoinTypeStorage
     public const RIGHT = 'right';
 
     public const INNER = 'inner';
+
+    public const NONE = null;
 }

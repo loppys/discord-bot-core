@@ -6,28 +6,28 @@ use Discord\Bot\System\Repository\Entity\AbstractEntity;
 
 /**
  * @property int $stl_id
- * @property string|array $stl_before
- * @property string|array $stl_after
+ * @property string $stl_before
+ * @property string $stl_after
  */
 class SettingsLogEntity extends AbstractEntity
 {
-    public function setStl_before(array $value): void
+    public function setStlBefore(array $value): void
     {
-        $this->stl_before = json_encode($value);
+        $this->setDataByName('stl_before', json_encode($value));
     }
 
-    public function setStl_after(array $value): void
+    public function setStlAfter(array $value): void
     {
-        $this->stl_after = json_encode($value);
+        $this->setDataByName('stl_after', json_encode($value));
     }
 
-    public function getStl_before(): string
+    public function getStlBefore(): string
     {
-        return json_decode($this->stl_before, true);
+        return json_decode($this->getDataByName('stl_before') ?? '', true);
     }
 
-    public function getStl_after(): string
+    public function getStlAfter(): string
     {
-        return json_decode($this->stl_after, true);
+        return json_decode($this->getDataByName('stl_after') ?? '', true);
     }
 }

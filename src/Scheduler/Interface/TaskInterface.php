@@ -17,4 +17,10 @@ interface TaskInterface extends QueueTaskInterface
     public function setExecutor(Executor $executor): static;
 
     public function getExecutor(): Executor;
+
+    public function isDone(): bool;
+
+    public function done(): static;
+
+    public function defineExecuteScheme(int $scheme = 1): static;
 }

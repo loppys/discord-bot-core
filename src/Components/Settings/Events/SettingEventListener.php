@@ -6,6 +6,7 @@ use Discord\Bot\Components\Settings\Repositories\SettingsRepository;
 use Discord\Bot\System\Events\AbstractEventListener;
 use Discord\Bot\System\GlobalRepository\Entities\SettingsLogEntity;
 use Discord\Bot\System\GlobalRepository\SettingsLogRepository;
+use Discord\Bot\System\Helpers\ConsoleLogger;
 use Doctrine\DBAL\Exception;
 
 class SettingEventListener extends AbstractEventListener
@@ -29,16 +30,25 @@ class SettingEventListener extends AbstractEventListener
      */
     public function beforeUpdateSetting(string $name, string $guild, array $data = []): void
     {
+        $this->lastLogId = null;
+
         $setting = $this->settingsRepository->createEntity([
             'stg_guild' => $guild,
             'stg_name' => $name
         ]);
 
-        $entity = new SettingsLogEntity();
-        $entity->stl_before = $setting?->toArray() ?? [];
+        if ($setting === null) {
+            return;
+        }
 
-        if (!$this->settingsLogRepository->saveByEntity($entity)) {
-            $this->lastLogId = (int)$this->settingsRepository->getLastInsertId();
+        $entity = $this->settingsRepository->newEntity();
+
+        $res = $setting->toArray() ?? [];
+
+        $entity->stl_before = serialize($res);
+
+        if ($this->settingsLogRepository->saveByEntity($entity)) {
+            $this->lastLogId = (int)$this->settingsLogRepository->getLastInsertId();
         }
     }
 
@@ -52,6 +62,10 @@ class SettingEventListener extends AbstractEventListener
             'stg_name' => $name
         ]);
 
+        if ($setting === null) {
+            return;
+        }
+
         $entity = $this->settingsLogRepository->createEntity([
             'stl_id' => $this->lastLogId
         ]);
@@ -59,7 +73,9 @@ class SettingEventListener extends AbstractEventListener
         $this->lastLogId = null;
 
         if ($entity !== null) {
-            $entity->stl_after = $setting?->toArray() ?? [];
+            $res = $setting->toArray() ?? [];
+
+            $entity->stl_after = serialize($res);
             $this->settingsLogRepository->updateByEntity($entity, ['stl_after']);
         }
     }

@@ -36,11 +36,6 @@ class Executor implements ExecutorInterface
 
     public function execute(): bool
     {
-        return call_user_func_array($this->getCallable(), $this->getArguments());
-    }
-
-    public function getInstance(): static
-    {
-        return $this;
+        return call_user_func_array($this->getCallable(), $this->getArguments()) ?? false;
     }
 }

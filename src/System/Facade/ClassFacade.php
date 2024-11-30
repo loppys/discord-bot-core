@@ -2,12 +2,16 @@
 
 namespace Discord\Bot\System\Facade;
 
+use Discord\Bot\System\Helpers\ConsoleLogger;
+use Discord\Bot\System\Storages\TypeSystemStat;
+use Discord\Bot\System\Traits\SystemStatAccessTrait;
 use Loader\System\Traits\ContainerTrait;
 use RuntimeException;
 
 class ClassFacade
 {
     use ContainerTrait;
+    use SystemStatAccessTrait;
 
     /**
      * @var array<string>
@@ -51,6 +55,9 @@ class ClassFacade
     {
         $this->classList[$name] = $class;
 
+        ConsoleLogger::showMessage('----------');
+        ConsoleLogger::showMessage("overridden {$name} in Facade");
+
         $this->create($name);
 
         return $this;
@@ -61,6 +68,9 @@ class ClassFacade
         if ($this->has($name)) {
             return $this;
         }
+
+        ConsoleLogger::showMessage('----------');
+        ConsoleLogger::showMessage("add {$name} in Facade");
 
         if (is_object($class)) {
             $this->classList[$name] = $class::class;
@@ -112,7 +122,19 @@ class ClassFacade
             return;
         }
 
-        $this->created[$name] = $this->getContainer()->createObject($class);
+        $object = $this->getContainer()->createObject($class);
+
+        if (method_exists($object, 'setName')) {
+            call_user_func([$object, 'setName'], $name);
+        }
+
+        if (method_exists($object, 'baseActivateComponent')) {
+            call_user_func([$object, 'baseActivateComponent']);
+        }
+
+        $this->created[$name] = $object;
+
+        ConsoleLogger::showMessage("{$name} created");
     }
 
     protected function getClassByName(string $name): ?string
