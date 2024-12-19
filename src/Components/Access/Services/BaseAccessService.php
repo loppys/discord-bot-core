@@ -53,4 +53,9 @@ class BaseAccessService
     {
         return $access > BaseAccessStorage::DEVELOPER;
     }
+
+    public function getRepository(): AccessRepository
+    {
+        return $this->repository;
+    }
 }

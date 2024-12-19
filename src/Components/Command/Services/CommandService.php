@@ -9,6 +9,7 @@ use Discord\Bot\Components\Command\Entity\CommandEntity;
 use Discord\Bot\Components\Command\Parts\AbstractProcessCommand;
 use Discord\Bot\Components\Command\Repositories\CommandRepository;
 use Discord\Bot\Components\Command\Storage\CommandMigrationTypeStorage;
+use Discord\Bot\Components\Command\Storage\ResultCodeStorage;
 use Discord\Bot\Scheduler\Interface\QueueManagerInterface;
 use Discord\Bot\Scheduler\QueueManager;
 use Discord\Bot\System\Helpers\ConsoleLogger;
@@ -130,18 +131,18 @@ class CommandService
     {
         $command = $this->compareCommandByMessage($message->content);
 
-        if (!$this->hasCommand($command)) {
-            return ExecuteResult::create('Команда не найдена.', '9010', false);
+        if (!$this->hasCommand($command->getCommandName())) {
+            return ExecuteResult::create(ResultCodeStorage::NOT_FOUND);
         }
 
         $entity = $this->getCommandByName($command->getCommandName());
 
         if ($entity === null) {
-            return ExecuteResult::create('Не удалось создать команду.', '9011', false);
+            return ExecuteResult::create(ResultCodeStorage::FAIL_CREATE_COMMAND);
         }
 
         if (!$entity->isCommandClassExists()) {
-            return ExecuteResult::create('Не удалось выполнить команду.', '9020', false);
+            return ExecuteResult::create(ResultCodeStorage::FAIL_EXECUTE_COMMAND);
         }
 
         if ($interaction === null && $entity->isNewScheme()) {
@@ -149,9 +150,8 @@ class CommandService
             $cmdSymbol = Config::getSymbolCommand();
 
             return ExecuteResult::create(
-                "{$cmdSymbol}{$commandName} использует устаревшую схему вызова, используйте /{$commandName}",
-                '11022',
-                false
+                ResultCodeStorage::EMPTY_CODE,
+                "{$cmdSymbol}{$commandName} использует устаревшую схему вызова, используйте /{$commandName}"
             );
         }
 
@@ -161,16 +161,14 @@ class CommandService
         ;
 
         if (!$commandProcess instanceof AbstractProcessCommand) {
-            return ExecuteResult::create(
-                'Команда сформирована некорректно',
-                '22011',
-                false
-            );
+            return ExecuteResult::create(ResultCodeStorage::NOT_FORMED_CORRECTLY);
         }
 
         if ($interaction !== null && $entity->isNewScheme()) {
             $commandProcess->setInteraction($interaction);
         }
+
+        $commandProcess = Core::getInstance()->components;
 
         $result = $commandProcess->process(
             $message,
@@ -178,17 +176,12 @@ class CommandService
         );
 
         if ($result) {
-            return ExecuteResult::create(
-                '',
-                '1',
-                true
-            );
+            return ExecuteResult::create(ResultCodeStorage::SUCCESS);
         }
 
         return ExecuteResult::create(
+            ResultCodeStorage::EMPTY_CODE,
             'Команда выполнена с ошибками',
-            '00192',
-            false
         );
     }
 
@@ -199,7 +192,7 @@ class CommandService
     public function executeNewScheme(Interaction $interaction): ExecuteResult
     {
         if ($interaction->message === null) {
-            return new ExecuteResult();
+            return ExecuteResult::create(ResultCodeStorage::EMPTY_CODE);
         }
 
         return $this->execute($interaction->message, $interaction);
@@ -209,10 +202,10 @@ class CommandService
      * @throws Exception
      * @throws DBException
      */
-    protected function hasCommand(Command $command): bool
+    public function hasCommand(string $commandName): bool
     {
         return $this->commandRepository->has([
-            'name' => $command->getCommandName()
+            'name' => $commandName
         ]);
     }
 

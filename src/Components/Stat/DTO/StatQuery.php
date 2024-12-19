@@ -3,9 +3,12 @@
 namespace Discord\Bot\Components\Stat\DTO;
 
 use Discord\Bot\Components\Stat\Storages\StatQueryTypeStorage;
+use Discord\Bot\System\Traits\DefaultObjectCreatorTrait;
 
 class StatQuery
 {
+    use DefaultObjectCreatorTrait;
+
     protected int $queryType = StatQueryTypeStorage::EMPTY;
 
     protected ?int $type = null;

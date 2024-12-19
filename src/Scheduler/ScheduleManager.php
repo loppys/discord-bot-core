@@ -295,4 +295,13 @@ class ScheduleManager
 
         return true;
     }
+
+    public function hasTask(string $name): bool
+    {
+        if (!empty($this->taskInLoop[$name])) {
+            return true;
+        }
+
+        return $this->queueManager->hasTask($name);
+    }
 }

@@ -4,12 +4,14 @@ namespace Discord\Bot\System\Helpers;
 
 class ConsoleLogger
 {
-    public static function mixedMessage(string $message, array $dataArray): void
+    public static function mixedMessage(string $message, array $dataArray = []): void
     {
         $time = date('d.m.Y H:i:s');
 
-        $dataArray = json_encode($dataArray);
-        $message .= " :: {$dataArray}";
+        if (!empty($dataArray)) {
+            $dataArray = json_encode($dataArray);
+            $message .= " :: {$dataArray}";
+        }
 
         print "[{$time}] {$message}" . PHP_EOL;
     }

@@ -6,8 +6,10 @@ use Discord\Bot\System\Discord\DiscordEventManager;
 use Discord\Bot\System\DBAL;
 use Discord\Bot\System\Events\EventDispatcher;
 use Discord\Bot\System\Helpers\ConsoleLogger;
+use Discord\Bot\System\Interfaces\ComponentLicenseInterface;
 use Discord\Bot\System\License\DTO\ComponentInfo;
 use Discord\Bot\System\License\DTO\KeyPeriod;
+use Discord\Bot\System\License\LicenseInjection;
 use Discord\Bot\System\License\LicenseManager;
 use Discord\Bot\System\License\Storages\ActivateMethodStorage;
 use Discord\Bot\System\License\Storages\KeyPrefixStorage;
@@ -28,10 +30,11 @@ use React\EventLoop\LoopInterface;
 use RuntimeException;
 use ReflectionException;
 
-class Core implements SingletonInterface
+class Core implements SingletonInterface, ComponentLicenseInterface
 {
     use SingletonTrait;
     use ContainerInjection;
+    use LicenseInjection;
 
     protected Discord $discord;
 
@@ -68,6 +71,10 @@ class Core implements SingletonInterface
     {
         /** @var Core $instance */
         $instance = self::$instance;
+
+        if (empty($instance)) {
+            throw new RuntimeException('Core not init');
+        }
 
         $instance->systemStat->add(TypeSystemStat::CORE);
 
@@ -186,7 +193,7 @@ class Core implements SingletonInterface
             }
         }
 
-        $core->coreActivate('default');
+        $core->baseActivateComponent('default');
 
         ConsoleLogger::showMessage('core init success');
 
@@ -279,12 +286,11 @@ class Core implements SingletonInterface
         return $this->logger->write($value, 'core');
     }
 
-    public function coreActivate(string $guild = 'undefined'): void
+    public function baseActivateComponent(string $guild = 'default'): void
     {
-        $key = $this->licenseManager->getKey(
-            $guild,
-            KeyPrefixStorage::MAIN
-        );
+        $this->_licenseInjection($guild);
+
+        $key = $this->getKey($guild, $this->getComponentName());
 
         if ($key === null) {
             $newKey = $this->licenseManager->getActivationService()
@@ -296,8 +302,8 @@ class Core implements SingletonInterface
             ;
 
             $componentInfo = (new ComponentInfo())
-                ->setComponentName('core')
-                ->setComponentClass(Core::class)
+                ->setComponentName($this->getComponentName())
+                ->setComponentClass(static::class)
                 ->setUseComponentClass(true)
             ;
 
@@ -305,5 +311,20 @@ class Core implements SingletonInterface
 
             $this->licenseManager->activate($newKey, ActivateMethodStorage::MAIN);
         }
+    }
+
+    public function getComponentName(): string
+    {
+        return 'core';
+    }
+
+    public function guildKeyValid(string $guild = ''): bool
+    {
+        return true;
+    }
+
+    public function keyRequired(): bool
+    {
+        return true;
     }
 }

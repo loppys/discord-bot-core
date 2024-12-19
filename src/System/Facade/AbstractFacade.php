@@ -83,4 +83,9 @@ abstract class AbstractFacade
     {
         return $this->facade->getClassList();
     }
+
+    public function getAll(): array
+    {
+        return $this->facade->getAll();
+    }
 }

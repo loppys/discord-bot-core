@@ -28,9 +28,9 @@ class ComponentsFacade extends AbstractFacade
      * @var array<ComponentInterface>
      */
     protected array $initClassList = [
+        'settings' => SettingsComponent::class,
         'access' => AccessComponent::class,
         'user' => UserComponent::class,
-        'settings' => SettingsComponent::class,
         'command' => CommandComponent::class,
         'stat' => StatComponent::class,
     ];

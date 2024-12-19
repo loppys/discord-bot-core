@@ -14,6 +14,7 @@ use Discord\Bot\System\Interfaces\RepositoryInterface;
 use Discord\Bot\System\DBAL;
 use Discord\Bot\System\Repository\Schema\Table;
 use Discord\Bot\System\Repository\Schema\TableField;
+use Discord\Bot\System\Repository\Server\Source;
 use Discord\Bot\System\Storages\TypeSystemStat;
 use Discord\Bot\System\Traits\SystemStatAccessTrait;
 use Doctrine\DBAL\Connection;
@@ -383,7 +384,7 @@ abstract class AbstractRepository implements RepositoryInterface, QueryCreatorIn
             if ($i < 1) {
                 $condition .= $criteriaString;
             } else {
-                $condition .= $joinCriteria->getSqlOperator() . ' ' . $criteriaString;
+                $condition .= ' ' . $joinCriteria->getSqlOperator() . ' ' . $criteriaString;
             }
 
             $i++;
@@ -563,5 +564,10 @@ abstract class AbstractRepository implements RepositoryInterface, QueryCreatorIn
                 unset($data[$col]);
             }
         }
+    }
+
+    public function setServerSource(Source $source): void
+    {
+        $this->connection = $source->getConnection();
     }
 }

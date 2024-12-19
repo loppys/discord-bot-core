@@ -164,4 +164,9 @@ class ActivationService
     {
         return $this->logger->write($value);
     }
+
+    public function getLicenseRepository(): LicenseRepository
+    {
+        return $this->licenseRepository;
+    }
 }

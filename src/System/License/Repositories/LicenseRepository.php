@@ -2,14 +2,17 @@
 
 namespace Discord\Bot\System\License\Repositories;
 
+use Discord\Bot\System\DBAL;
 use Discord\Bot\System\License\Entities\LicenseEntity;
 use Discord\Bot\System\Repository\AbstractRepository;
+use Discord\Bot\System\Repository\CriteriaComparator;
 use Discord\Bot\System\Repository\Entity\AbstractEntity;
 
 /**
  * @method LicenseEntity|null createEntity(array $criteria = [])
  * @method LicenseEntity|null createEntityByArray(array $data)
  * @method LicenseEntity|null newEntity()
+ * @method LicenseEntity[] getAll(array $criteria = [])
  */
 class LicenseRepository extends AbstractRepository
 {
