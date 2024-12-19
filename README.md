@@ -41,6 +41,8 @@ return [
         'dbLogin' => 'user',
         'dbPassword' => 'password'
     ],
+    'symbolCommand' => '~',
+    'useNewCommandSystem' => true,
 ];
 
 ```

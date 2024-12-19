@@ -17,6 +17,8 @@ class CommandMigration extends CommandEntity implements QueueTaskInterface
 
     public $class = '';
 
+    public $description = '';
+
     protected int $type = CommandMigrationTypeStorage::EMPTY;
 
     protected string $taskName = '';
@@ -28,6 +30,7 @@ class CommandMigration extends CommandEntity implements QueueTaskInterface
         $entityData['name'] = $this->name;
         $entityData['access'] = $this->access;
         $entityData['class'] = $this->class;
+        $entityData['description'] = $this->description;
 
         parent::__construct($entityData);
     }

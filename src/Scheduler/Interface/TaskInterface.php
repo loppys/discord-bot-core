@@ -3,6 +3,7 @@
 namespace Discord\Bot\Scheduler\Interface;
 
 use Discord\Bot\Scheduler\Parts\Executor;
+use Discord\Bot\Scheduler\Storage\ExecuteSchemeStorage;
 
 interface TaskInterface extends QueueTaskInterface
 {
@@ -22,5 +23,5 @@ interface TaskInterface extends QueueTaskInterface
 
     public function done(): static;
 
-    public function defineExecuteScheme(int $scheme = 1): static;
+    public function defineExecuteScheme(int $scheme = ExecuteSchemeStorage::AUTO): static;
 }

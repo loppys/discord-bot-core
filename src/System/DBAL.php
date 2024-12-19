@@ -45,7 +45,7 @@ class DBAL
         $this->createNewConnection('default', $this->param);
     }
 
-    public function createNewConnection(string $name, array $params): Connection
+    public function createNewConnection(string $name, array $params, bool $switchNewConnection = true): Connection
     {
         if (!empty(static::$_instances[$name])) {
             return static::$_instances[$name];
@@ -69,7 +69,10 @@ class DBAL
             ]
         );
 
-        static::$_currentConnection = $name;
+        if ($switchNewConnection) {
+            static::$_currentConnection = $name;
+        }
+
         static::$_instances[$name] = $connection;
 
         return $connection;

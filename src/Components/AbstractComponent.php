@@ -4,6 +4,7 @@ namespace Discord\Bot\Components;
 
 use Discord\Bot\Components\Command\DTO\CommandMigration;
 use Discord\Bot\Components\Command\Services\CommandService;
+use Discord\Bot\Components\Settings\SettingsComponent;
 use Discord\Bot\Scheduler\Parts\DefaultTask;
 use Discord\Bot\Scheduler\Parts\Executor;
 use Discord\Bot\Scheduler\Storage\QueueGroupStorage;
@@ -14,6 +15,7 @@ use Discord\Bot\System\Interfaces\ComponentInterface;
 use Discord\Bot\System\ComponentsFacade;
 use Discord\Bot\System\License\DTO\ComponentInfo;
 use Discord\Bot\System\License\DTO\KeyPeriod;
+use Discord\Bot\System\License\LicenseInjection;
 use Discord\Bot\System\License\LicenseManager;
 use Discord\Bot\System\License\Storages\ActivateMethodStorage;
 use Discord\Bot\System\License\Storages\KeyPrefixStorage;
@@ -29,6 +31,7 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
 {
     use SystemStatAccessTrait;
     use LogSourceTrait;
+    use LicenseInjection;
 
     protected string $name = '';
 
@@ -198,13 +201,21 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
         return $this;
     }
 
-    public function baseActivateComponent(): void
+    public function baseActivateComponent(string $guild = 'default'): void
     {
-        $key = $this->licenseManager->getKey(
-            'default',
-            KeyPrefixStorage::COMPONENT,
-            $this->name ?: static::class
-        );
+        $this->_licenseInjection($guild);
+
+        if ($this instanceof SettingsComponent) {
+            $setting = $this->getService()->getSettingByName('useLicense', $guild);
+        } else {
+            $setting = $this->components->settings->getService()->getSettingByName('useLicense', $guild);
+        }
+
+        if ($setting !== null && $setting->stg_enabled) {
+            $this->useLicense = $setting->stg_value;
+        }
+
+        $key = $this->getKey($guild, $this->getComponentName());
 
         if ($key === null) {
             $componentInfo = (new ComponentInfo())
@@ -222,5 +233,15 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
 
             $this->licenseManager->activate($newKey, ActivateMethodStorage::COMPONENT);
         }
+    }
+
+    public function getComponentName(): string
+    {
+        return $this->name;
+    }
+
+    public function licenseInjection(string $guild): void
+    {
+        $this->_licenseInjection($guild);
     }
 }
