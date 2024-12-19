@@ -2,6 +2,8 @@
 
 namespace Discord\Bot\Components\Command\DTO;
 
+use Discord\Bot\Components\Command\Storage\ResultCodeStorage;
+
 class ExecuteResult
 {
     protected string $message = '';
@@ -10,9 +12,9 @@ class ExecuteResult
 
     protected bool $success = false;
 
-    public static function create(string $message, string $code = '', ?bool $success = null): static
+    public static function create(string $code = '', ?string $customMessage = null): static
     {
-        return (new static())->setMessage($message)->setCode($code)->setSuccess($success);
+        return (new static())->setCode($code, $customMessage);
     }
 
     public function getCode(): int
@@ -20,9 +22,24 @@ class ExecuteResult
         return $this->code;
     }
 
-    public function setCode(int $code): static
+    public function setCode(int $code, ?string $customMessage = null): static
     {
         $this->code = $code;
+
+        if (in_array($code, ResultCodeStorage::SUCCESS_CODES, true)) {
+            $this->success = true;
+
+            return $this;
+        }
+
+        if ($customMessage !== null) {
+            $this->message = $customMessage;
+        }
+
+        if (empty($this->message)) {
+            $this->message = ResultCodeStorage::MESSAGES[$code]
+                ?? ResultCodeStorage::MESSAGES[ResultCodeStorage::EMPTY_CODE];
+        }
 
         return $this;
     }
@@ -32,22 +49,8 @@ class ExecuteResult
         return $this->success;
     }
 
-    public function setSuccess(bool $success): static
-    {
-        $this->success = $success;
-
-        return $this;
-    }
-
     public function getMessage(): string
     {
         return $this->message;
-    }
-
-    public function setMessage(string $message): static
-    {
-        $this->message = $message;
-
-        return $this;
     }
 }

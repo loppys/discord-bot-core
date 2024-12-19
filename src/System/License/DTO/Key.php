@@ -67,6 +67,8 @@ class Key
     {
         $this->master = $master;
 
+        $this->setPeriod(KeyPeriod::createInfinity());
+
         return $this;
     }
 
@@ -120,6 +122,10 @@ class Key
 
     public function isExpired(): bool
     {
+        if ($this->getPeriod()->isInfinity() || $this->isMaster()) {
+            return false;
+        }
+
         return strtotime($this->period->getTo()) < time();
     }
 }

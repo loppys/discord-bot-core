@@ -66,4 +66,9 @@ class CommandComponent extends AbstractComponent
     {
         return $this->getService()->addCommand($command);
     }
+
+    public function hasCommand(string $name): bool
+    {
+        return $this->getService()->hasCommand($name);
+    }
 }

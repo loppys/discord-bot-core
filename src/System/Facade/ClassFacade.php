@@ -103,6 +103,17 @@ class ClassFacade
         return $this->created[$name];
     }
 
+    public function getAll(): array
+    {
+        $res = [];
+
+        foreach ($this->getClassList() as $name => $class) {
+            $res[] = $this->get($name);
+        }
+
+        return $res;
+    }
+
     public function getClassList(): array
     {
         return $this->classList;
@@ -113,9 +124,7 @@ class ClassFacade
         $class = $this->getClassByName($name);
 
         if ($class === null) {
-            $currentFacadeClass = static::class;
-
-            throw new RuntimeException("Facade {$currentFacadeClass}: class not found for {$name}");
+            throw new RuntimeException("class not found for {$name}");
         }
 
         if (!empty($this->created[$name]) && is_object($this->created[$name])) {

@@ -42,4 +42,9 @@ class AccessComponent extends AbstractComponent
     {
         return $this->getService()->isRoot($userAccess);
     }
+
+    public function repository(): AccessRepository
+    {
+        return $this->getService()->getRepository();
+    }
 }

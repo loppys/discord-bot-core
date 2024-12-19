@@ -203,7 +203,25 @@ class MigrationManager
 
             $this->getSystemStat()->add(TypeSystemStat::DB);
 
-            $sqlQueryResult = $this->db->getConnection()->executeStatement($query->getSqlQuery());
+            try {
+                $sqlQueryResult = $this->db->getConnection()->executeStatement($query->getSqlQuery());
+            } catch (Exception $e) {
+                $msg = 'SQL Migration fail: ' . $e->getMessage();
+
+                ConsoleLogger::showMessage($msg);
+
+                $this->removeMigrationByQuery($query);
+
+                $result = $this->repository->createEntityByArray([
+                    'mig_file' => $query->getMigrationFile(),
+                    'mig_hash' => $query->getFileHash(),
+                    'mig_query' => $msg
+                ]);
+
+                $this->repository->saveByEntity($result);
+
+                return false;
+            }
 
             $result = $this->repository->createEntityByArray([
                 'mig_file' => $query->getMigrationFile(),

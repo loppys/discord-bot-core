@@ -7,6 +7,7 @@ use Discord\Bot\Components\Command\DTO\Command;
 use Discord\Bot\Components\Command\DTO\ExecuteResult;
 use Discord\Bot\Components\Command\Interfaces\CascadeCommandInterface;
 use Discord\Bot\Core;
+use Discord\Bot\System\ComponentsFacade;
 use Discord\Bot\System\DBAL;
 use Discord\Builders\MessageBuilder;
 use Discord\Discord;
@@ -25,6 +26,8 @@ abstract class AbstractProcessCommand
     protected Command $command;
 
     protected Message|null $message = null;
+
+    protected ComponentsFacade $components;
 
     protected array $arguments = [];
 
@@ -168,6 +171,11 @@ abstract class AbstractProcessCommand
         $this->isNewScheme = true;
 
         $this->interaction = $interaction;
+    }
+
+    public function setComponents(ComponentsFacade $components): void
+    {
+        $this->components = $components;
     }
 
     abstract protected function execute(): bool;

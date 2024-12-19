@@ -4,6 +4,8 @@ namespace Discord\Bot\System\Repository\Entity;
 
 use ArrayAccess;
 use Discord\Bot\System\Helpers\ConvertCaseHelper;
+use Discord\Bot\System\Repository\AbstractRepository;
+use RuntimeException;
 use Iterator;
 
 abstract class AbstractEntity implements ArrayAccess, Iterator
@@ -19,6 +21,22 @@ abstract class AbstractEntity implements ArrayAccess, Iterator
     public function __construct(array $entityData = [])
     {
         $this->entityData = $entityData;
+
+        $callSource = null;
+        $trace = debug_backtrace(limit: 2);
+
+        if (!empty($trace[1]) && is_array($trace[1])) {
+            $callSource = $trace[1]['object'] ?? null;
+        }
+
+        if (
+            (empty($callSource) || !is_object($callSource))
+            || (is_object($callSource) && !$callSource instanceof AbstractRepository)
+        ) {
+            if (!$callSource instanceof AbstractEntity) {
+                throw new RuntimeException('Creating entities manually is prohibited, use repository');
+            }
+        }
     }
 
     public function toArray(): array

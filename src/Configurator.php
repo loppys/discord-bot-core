@@ -3,17 +3,14 @@
 namespace Discord\Bot;
 
 use Discord\Bot\System\ComponentsFacade;
+use Discord\Bot\System\Traits\DefaultObjectCreatorTrait;
 
 class Configurator
 {
+    use DefaultObjectCreatorTrait;
+
     /**
-     * 'databaseParams' => [
-     * 'dbType' => 'pdo_mysql',
-     * 'dbHost' => 'localhost',
-     * 'dbName' => 'discord_bot',
-     * 'dbLogin' => 'db_user',
-     * 'dbPassword' => '****'
-     * ]
+     * @see check README.md
      */
     protected string $globalConfigPath = '';
 
@@ -24,20 +21,6 @@ class Configurator
     protected bool $initDI = true;
 
     protected array $discordEvents = [];
-
-    public static function create(array $data = []): static
-    {
-        $obj = new static();
-
-        foreach ($data as $property => $value) {
-            $method = 'set' . ucfirst($property);
-            if (method_exists($obj, $method)) {
-                $obj->{$method}($value);
-            }
-        }
-
-        return $obj;
-    }
 
     public function getDiscordEvents(): array
     {
