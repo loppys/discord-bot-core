@@ -4,7 +4,7 @@ namespace Discord\Bot\System\Repository\DTO;
 
 class SourceParams
 {
-    public string $dbType = 'pro_mysql';
+    public string $dbType = 'pdo_mysql';
 
     public ?string $dbHost = null;
 
