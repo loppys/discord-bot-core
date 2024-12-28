@@ -3,8 +3,8 @@
 namespace Discord\Bot\Components\Settings\Repositories;
 
 use Discord\Bot\Components\Settings\Entity\Setting;
-use Discord\Bot\System\Repository\AbstractRepository;
-use Discord\Bot\System\Repository\Entity\AbstractEntity;
+use Vengine\Libraries\Repository\AbstractRepository;
+use Vengine\Libraries\Repository\Entity\AbstractEntity;
 
 /**
  * @method Setting|null createEntity(array $criteria = [])

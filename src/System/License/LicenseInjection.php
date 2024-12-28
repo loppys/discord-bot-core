@@ -7,7 +7,7 @@ use Discord\Bot\Scheduler\Parts\Executor;
 use Discord\Bot\Scheduler\Parts\PeriodicTask;
 use Discord\Bot\Scheduler\ScheduleManager;
 use Discord\Bot\Scheduler\Storage\QueueGroupStorage;
-use Discord\Bot\System\Helpers\ConsoleLogger;
+use Vengine\Libraries\Console\ConsoleLogger;
 use Discord\Bot\System\License\DTO\Key;
 use Loader\System\Container;
 

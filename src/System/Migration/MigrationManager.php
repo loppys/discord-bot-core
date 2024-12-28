@@ -2,14 +2,14 @@
 
 namespace Discord\Bot\System\Migration;
 
-use Discord\Bot\System\DBAL;
-use Discord\Bot\System\Helpers\ConsoleLogger;
+use Vengine\Libraries\DBAL\Adapter;
+use Vengine\Libraries\Console\ConsoleLogger;
 use Discord\Bot\System\Migration\Entity\MigrationResult;
 use Discord\Bot\System\Migration\Parts\Migration;
 use Discord\Bot\System\Migration\Parts\MigrationQuery;
 use Discord\Bot\System\Migration\Repository\MigrationRepository;
 use Discord\Bot\System\Migration\Storage\MigrationTypeStorage;
-use Discord\Bot\System\Repository\DTO\Query;
+use Vengine\Libraries\Repository\DTO\Query;
 use Discord\Bot\System\Storages\TypeSystemStat;
 use Discord\Bot\System\Traits\SystemStatAccessTrait;
 use Doctrine\DBAL\Exception;
@@ -20,7 +20,7 @@ class MigrationManager
     use SystemStatAccessTrait;
     use SystemStatAccessTrait;
 
-    protected DBAL $db;
+    protected Adapter $db;
 
     protected MigrationRepository $repository;
 
@@ -32,7 +32,7 @@ class MigrationManager
     /**
      * @throws Exception
      */
-    public function __construct(MigrationRepository $repository, DBAL $db)
+    public function __construct(MigrationRepository $repository, Adapter $db)
     {
         ConsoleLogger::showMessage('create Migration Manager');
 

@@ -3,12 +3,12 @@
 namespace Discord\Bot\System\Migration\Parts;
 
 use Discord\Bot\Core;
-use Discord\Bot\System\DBAL;
+use Vengine\Libraries\DBAL\Adapter;
 use Discord\Bot\System\Migration\Entity\MigrationResult;
 
 abstract class Migration
 {
-    protected DBAL $db;
+    protected Adapter $db;
 
     public function __construct()
     {

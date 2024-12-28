@@ -2,7 +2,7 @@
 
 namespace Discord\Bot\System;
 
-use Discord\Bot\System\Helpers\ConsoleLogger;
+use Vengine\Libraries\Console\ConsoleLogger;
 use Discord\Bot\System\Storages\TypeSystemStat;
 
 class SystemStat

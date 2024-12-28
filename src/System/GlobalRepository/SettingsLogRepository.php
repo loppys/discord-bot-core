@@ -3,7 +3,7 @@
 namespace Discord\Bot\System\GlobalRepository;
 
 use Discord\Bot\System\GlobalRepository\Entities\SettingsLogEntity;
-use Discord\Bot\System\Repository\AbstractRepository;
+use Vengine\Libraries\Repository\AbstractRepository;
 
 /**
  * @method SettingsLogEntity|null createEntity(array $criteria = [])

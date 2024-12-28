@@ -8,7 +8,7 @@ use Discord\Bot\Components\Command\DTO\ExecuteResult;
 use Discord\Bot\Components\Command\Interfaces\CascadeCommandInterface;
 use Discord\Bot\Core;
 use Discord\Bot\System\ComponentsFacade;
-use Discord\Bot\System\DBAL;
+use Vengine\Libraries\DBAL\Adapter;
 use Discord\Builders\MessageBuilder;
 use Discord\Discord;
 use Discord\Http\Exceptions\NoPermissionsException;
@@ -33,7 +33,7 @@ abstract class AbstractProcessCommand
 
     protected array $flags = [];
 
-    protected DBAL $db;
+    protected Adapter $db;
 
     protected Discord $discord;
 
@@ -48,7 +48,7 @@ abstract class AbstractProcessCommand
      */
     private array $resultList = [];
 
-    public function __construct(Discord $discord, DBAL $db)
+    public function __construct(Discord $discord, Adapter $db)
     {
         $this->container = Container::getInstance();
         $this->discord = $discord;

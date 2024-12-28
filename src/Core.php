@@ -3,16 +3,15 @@
 namespace Discord\Bot;
 
 use Discord\Bot\System\Discord\DiscordEventManager;
-use Discord\Bot\System\DBAL;
+use Vengine\Libraries\DBAL\Adapter;
 use Discord\Bot\System\Events\EventDispatcher;
-use Discord\Bot\System\Helpers\ConsoleLogger;
+use Vengine\Libraries\Console\ConsoleLogger;
 use Discord\Bot\System\Interfaces\ComponentLicenseInterface;
 use Discord\Bot\System\License\DTO\ComponentInfo;
 use Discord\Bot\System\License\DTO\KeyPeriod;
 use Discord\Bot\System\License\LicenseInjection;
 use Discord\Bot\System\License\LicenseManager;
 use Discord\Bot\System\License\Storages\ActivateMethodStorage;
-use Discord\Bot\System\License\Storages\KeyPrefixStorage;
 use Discord\Bot\System\Logger;
 use Discord\Bot\System\Migration\MigrationManager;
 use Discord\Bot\System\Storages\TypeSystemStat;
@@ -24,11 +23,11 @@ use Discord\Bot\System\ComponentsFacade;
 use Discord\Bot\System\Interfaces\SingletonInterface;
 use Discord\Discord;
 use Discord\Exceptions\IntentException;
-use Doctrine\DBAL\Exception;
 use Loader\System\Container;
 use React\EventLoop\LoopInterface;
 use RuntimeException;
 use ReflectionException;
+use Vengine\Libraries\DBAL\DTO\Config as DatabaseConfig;
 
 class Core implements SingletonInterface, ComponentLicenseInterface
 {
@@ -44,7 +43,7 @@ class Core implements SingletonInterface, ComponentLicenseInterface
         MigrationManager $migrationManager,
         ScheduleManager $scheduleManager,
         DiscordEventManager $discordEventManager,
-        DBAL $db
+        Adapter $db
     ) {
         if (empty($_SERVER['create.auto'])) {
             trigger_error(
@@ -118,7 +117,7 @@ class Core implements SingletonInterface, ComponentLicenseInterface
             throw new RuntimeException('db params invalid');
         }
 
-        Config::setDatabaseParams($globalConfig['databaseParams']);
+        DatabaseConfig::setDatabaseParams($globalConfig['databaseParams']);
         Config::setSymbolCommand($symbolCommand);
         Config::setUseNewCommandSystem($useNewCommandSystem);
 
@@ -244,7 +243,7 @@ class Core implements SingletonInterface, ComponentLicenseInterface
         return $this->scheduleManager;
     }
 
-    public function getDatabaseAdapter(): DBAL
+    public function getDatabaseAdapter(): Adapter
     {
         return $this->db;
     }

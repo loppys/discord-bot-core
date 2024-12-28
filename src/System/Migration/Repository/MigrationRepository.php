@@ -2,7 +2,7 @@
 
 namespace Discord\Bot\System\Migration\Repository;
 
-use Discord\Bot\System\Repository\AbstractRepository;
+use Vengine\Libraries\Repository\AbstractRepository;
 use Discord\Bot\System\Migration\Entity\MigrationResult;
 
 /**

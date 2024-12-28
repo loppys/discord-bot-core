@@ -3,7 +3,7 @@
 namespace Discord\Bot\System\Events;
 
 use Discord\Bot\System\Events\Interfaces\EventListenerInterface;
-use Discord\Bot\System\Helpers\ConsoleLogger;
+use Vengine\Libraries\Console\ConsoleLogger;
 
 class EventDispatcher
 {

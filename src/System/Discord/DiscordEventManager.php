@@ -4,7 +4,7 @@ namespace Discord\Bot\System\Discord;
 
 use Discord\Bot\Core;
 use Discord\Bot\System\Discord\Events\AbstractEvent;
-use Discord\Bot\System\Helpers\ConsoleLogger;
+use Vengine\Libraries\Console\ConsoleLogger;
 use Loader\System\Traits\ContainerTrait;
 use Discord\Discord;
 

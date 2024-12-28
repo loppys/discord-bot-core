@@ -10,7 +10,7 @@ use Discord\Bot\Scheduler\Parts\Executor;
 use Discord\Bot\Scheduler\Storage\QueueGroupStorage;
 use Discord\Bot\System\Events\AbstractSystemEventHandle;
 use Discord\Bot\System\GlobalRepository\Traits\LogSourceTrait;
-use Discord\Bot\System\Helpers\ConsoleLogger;
+use Vengine\Libraries\Console\ConsoleLogger;
 use Discord\Bot\System\Interfaces\ComponentInterface;
 use Discord\Bot\System\ComponentsFacade;
 use Discord\Bot\System\License\DTO\ComponentInfo;

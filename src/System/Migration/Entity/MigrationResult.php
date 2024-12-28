@@ -2,7 +2,7 @@
 
 namespace Discord\Bot\System\Migration\Entity;
 
-use Discord\Bot\System\Repository\Entity\AbstractEntity;
+use Vengine\Libraries\Repository\Entity\AbstractEntity;
 
 /**
  * @property int $mig_id

@@ -11,7 +11,7 @@ use Discord\Bot\Components\Stat\Storages\StatQueryTypeStorage;
 use Discord\Bot\Components\Stat\Storages\StatTypeStorage;
 use Discord\Bot\Components\Access\Storage\BaseAccessStorage;
 use Discord\Bot\Core;
-use Discord\Bot\System\Repository\AbstractRepository;
+use Vengine\Libraries\Repository\AbstractRepository;
 use Discord\Parts\Guild\Guild;
 use Discord\Parts\User\Member;
 use Doctrine\DBAL\Exception;

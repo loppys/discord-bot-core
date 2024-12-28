@@ -2,7 +2,6 @@
 
 namespace Discord\Bot\Scheduler;
 
-use Discord\Bot\Core;
 use Discord\Bot\Scheduler\Interface\QueueManagerInterface;
 use Discord\Bot\Scheduler\Parts\AbstractTask;
 use Discord\Bot\Scheduler\Parts\DefaultTask;
@@ -11,7 +10,7 @@ use Discord\Bot\Scheduler\Parts\PeriodicTask;
 use Discord\Bot\Scheduler\Storage\ExecuteSchemeStorage;
 use Discord\Bot\Scheduler\Storage\QueueGroupStorage;
 use Discord\Bot\Scheduler\Storage\TaskTypeStorage;
-use Discord\Bot\System\Helpers\ConsoleLogger;
+use Vengine\Libraries\Console\ConsoleLogger;
 use Discord\Bot\System\Storages\TypeSystemStat;
 use Discord\Bot\System\Traits\SystemStatAccessTrait;
 use Loader\System\Traits\ContainerTrait;

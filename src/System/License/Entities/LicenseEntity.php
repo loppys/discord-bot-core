@@ -2,7 +2,7 @@
 
 namespace Discord\Bot\System\License\Entities;
 
-use Discord\Bot\System\Repository\Entity\AbstractEntity;
+use Vengine\Libraries\Repository\Entity\AbstractEntity;
 
 /**
  * @property int $lns_id

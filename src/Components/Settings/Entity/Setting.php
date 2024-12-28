@@ -3,7 +3,7 @@
 namespace Discord\Bot\Components\Settings\Entity;
 
 use Discord\Bot\Components\Settings\Storages\SettingsTypeStorage;
-use Discord\Bot\System\Repository\Entity\AbstractEntity;
+use Vengine\Libraries\Repository\Entity\AbstractEntity;
 
 /**
  * @property int $stg_id

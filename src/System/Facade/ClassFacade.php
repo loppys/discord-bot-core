@@ -2,7 +2,7 @@
 
 namespace Discord\Bot\System\Facade;
 
-use Discord\Bot\System\Helpers\ConsoleLogger;
+use Vengine\Libraries\Console\ConsoleLogger;
 use Discord\Bot\System\Storages\TypeSystemStat;
 use Discord\Bot\System\Traits\SystemStatAccessTrait;
 use Loader\System\Traits\ContainerTrait;

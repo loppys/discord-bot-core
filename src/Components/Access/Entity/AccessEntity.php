@@ -2,7 +2,7 @@
 
 namespace Discord\Bot\Components\Access\Entity;
 
-use Discord\Bot\System\Repository\Entity\AbstractEntity;
+use Vengine\Libraries\Repository\Entity\AbstractEntity;
 
 /**
  * @property string $ac_usr_id

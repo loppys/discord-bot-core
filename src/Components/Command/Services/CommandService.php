@@ -12,7 +12,7 @@ use Discord\Bot\Components\Command\Storage\CommandMigrationTypeStorage;
 use Discord\Bot\Components\Command\Storage\ResultCodeStorage;
 use Discord\Bot\Scheduler\Interface\QueueManagerInterface;
 use Discord\Bot\Scheduler\QueueManager;
-use Discord\Bot\System\Helpers\ConsoleLogger;
+use Vengine\Libraries\Console\ConsoleLogger;
 use Discord\Parts\Interactions\Command\Command as DiscordCommand;
 use Discord\Bot\Config;
 use Discord\Bot\Core;

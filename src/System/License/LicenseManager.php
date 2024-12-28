@@ -8,11 +8,11 @@ use Discord\Bot\System\License\DTO\Key;
 use Discord\Bot\System\License\DTO\KeyPeriod;
 use Discord\Bot\System\License\Repositories\LicenseRepository;
 use Discord\Bot\System\License\Services\ActivationService;
-use Discord\Bot\System\Repository\Server\Source;
+use Vengine\Libraries\Repository\Server\Source;
 use Discord\Bot\System\License\Storages\ActivateMethodStorage;
 use Discord\Bot\System\License\Storages\KeyPrefixStorage;
 use Discord\Bot\System\Logger;
-use Discord\Bot\System\Repository\DTO\LikeCriteria;
+use Vengine\Libraries\Repository\DTO\LikeCriteria;
 use Doctrine\DBAL\Exception;
 
 class LicenseManager

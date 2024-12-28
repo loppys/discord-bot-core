@@ -2,7 +2,7 @@
 
 namespace Discord\Bot\System\License\Helpers;
 
-use Discord\Bot\System\Helpers\ConsoleLogger;
+use Vengine\Libraries\Console\ConsoleLogger;
 use Exception;
 
 class KeyGen
