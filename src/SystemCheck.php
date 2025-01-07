@@ -14,6 +14,8 @@ class SystemCheck
     /**
      * Сколько раз необходимо запустить SystemCheck, чтобы задача повторно была запущена
      * По умолчанию значение = 1 (т.е. каждый запуск SystemCheck)
+     *
+     * @var int[]
      */
     protected array $tasksIntervalCount = [
         'discordRoleSync' => 2
@@ -23,7 +25,7 @@ class SystemCheck
      * Ключ - название задачи
      * Значение - количество запусков SystemCheck
      *
-     * @var array<string, int>
+     * @var int[]
      */
     private array $runCount = [];
 
