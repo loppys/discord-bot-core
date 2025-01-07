@@ -41,7 +41,7 @@ class SettingEventListener extends AbstractEventListener
             return;
         }
 
-        $entity = $this->settingsRepository->newEntity();
+        $entity = $this->settingsLogRepository->newEntity();
 
         $res = $setting->toArray() ?? [];
 
