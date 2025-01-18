@@ -22,7 +22,7 @@ class ScheduleManager
     use ContainerTrait;
     use SystemStatAccessTrait;
 
-    protected int $executeInterval = 30;
+    protected int $executeInterval = 15;
 
     protected QueueManagerInterface $queueManager;
 

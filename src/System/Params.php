@@ -8,8 +8,6 @@ class Params
 {
     use DefaultObjectCreatorTrait;
 
-    private array $data = [];
-
     public function has(string $name): bool
     {
         return !empty($this->data[$name]);

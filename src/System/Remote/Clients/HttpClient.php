@@ -25,7 +25,6 @@ class HttpClient extends AbstractClient implements HttpClientInterface
 
     public function execute(string $command): mixed
     {
-        ConsoleLogger::showMessage('HTTP client does not support generic commands.');
         trigger_error('HTTP client does not support generic commands.');
 
         return null;
