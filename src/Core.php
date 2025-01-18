@@ -3,6 +3,7 @@
 namespace Discord\Bot;
 
 use Discord\Bot\System\Discord\DiscordEventManager;
+use Discord\Bot\System\Params;
 use Vengine\Libraries\DBAL\Adapter;
 use Discord\Bot\System\Events\EventDispatcher;
 use Vengine\Libraries\Console\ConsoleLogger;
@@ -110,16 +111,22 @@ class Core implements SingletonInterface, ComponentLicenseInterface
             throw new RuntimeException('invalid config');
         }
 
-        $symbolCommand = $globalConfig['symbolCommand'] ?? '~';
-        $useNewCommandSystem = $globalConfig['useNewCommandSystem'] ?? true;
+        $globalConfigObject = Params::create($globalConfig);
 
-        if (empty($globalConfig['databaseParams']) || !is_array($globalConfig['databaseParams'])) {
+        $dbParams = $globalConfigObject->get('databaseParams');
+        if (empty($dbParams) || !is_array($dbParams)) {
             throw new RuntimeException('db params invalid');
         }
 
-        DatabaseConfig::setDatabaseParams($globalConfig['databaseParams']);
-        Config::setSymbolCommand($symbolCommand);
-        Config::setUseNewCommandSystem($useNewCommandSystem);
+        DatabaseConfig::setDatabaseParams($dbParams);
+        Config::setSymbolCommand($globalConfigObject->get('symbolCommand', '~'));
+        Config::setUseNewCommandSystem($globalConfigObject->get('useNewCommandSystem', true));
+
+        $ds = DIRECTORY_SEPARATOR;
+        $_SERVER['install.dir'] = $globalConfigObject->get(
+            'install.dir',
+            __DIR__ . $ds . 'Migrations' . $ds . 'install' . $ds
+        );
 
         if ($initDI) {
             new Container();

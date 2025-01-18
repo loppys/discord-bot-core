@@ -20,6 +20,7 @@
     "php-ffmpeg/php-ffmpeg": "*",
     "guzzlehttp/guzzle": "*",
     "phpseclib/phpseclib": "*",
+    "vengine-libs/migrations": "*",
     "ext-zlib": "*",
     "ext-json": "*",
     "ext-sodium": "*",
