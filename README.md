@@ -43,6 +43,7 @@ return [
     ],
     'symbolCommand' => '~',
     'useNewCommandSystem' => true,
+    'install.dir' => __DIR__ . '/migrations/install/',
 ];
 
 ```
