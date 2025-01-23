@@ -11,6 +11,7 @@ abstract class AbstractClient implements ClientInterface
     public function connect(): bool
     {
         $this->isConnected = true;
+        
         return $this->isConnected;
     }
 
