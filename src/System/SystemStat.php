@@ -10,11 +10,9 @@ class SystemStat
     protected array $stats = [];
 
     protected array $tr = [
-        TypeSystemStat::DB => 'Database queries',
         TypeSystemStat::CORE => 'use core',
         TypeSystemStat::COMPONENT => 'create components',
         TypeSystemStat::SCHEDULER => 'use scheduler',
-        TypeSystemStat::MIGRATIONS => 'create && execute migrations',
         TypeSystemStat::MAIN => 'undefined',
     ];
 
@@ -24,8 +22,6 @@ class SystemStat
         $this->stats[TypeSystemStat::COMPONENT] = 0;
         $this->stats[TypeSystemStat::CORE] = 0;
         $this->stats[TypeSystemStat::SCHEDULER] = 0;
-        $this->stats[TypeSystemStat::MIGRATIONS] = 0;
-        $this->stats[TypeSystemStat::DB] = 0;
     }
 
     public function add(string|int $type = TypeSystemStat::MAIN): static
@@ -59,9 +55,13 @@ class SystemStat
         $this->stats['memory_curr'] = memory_get_usage(true) / 1000000 . " MB";
 
         foreach ($this->tr as $type => $tr) {
-            ConsoleLogger::showMessage("{$tr} = {$this->stats[$type]}");
+            $stat = $this->stats[$type];
 
-            $this->stats[$type] = 0;
+            if ($stat === 0) {
+                continue;
+            }
+
+            ConsoleLogger::showMessage("{$tr} = {$stat}");
         }
 
         // Чтобы всегда было в конце списка

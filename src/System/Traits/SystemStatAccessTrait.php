@@ -8,8 +8,6 @@ use Loader\System\Container;
 
 trait SystemStatAccessTrait
 {
-    protected int $_typeStat = TypeSystemStat::MAIN;
-
     public function getSystemStat(): SystemStat
     {
         return Container::getInstance()->getShared('systemStat')

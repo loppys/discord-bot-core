@@ -74,7 +74,14 @@ class ScheduleManager
 
         $this->queueManager->addTask($task);
 
-        ConsoleLogger::showMessage("add schedule task: {$task->getName()}");
+        ConsoleLogger::mixedMessage(
+            "add schedule task: {$task->getName()}",
+            [
+                'queueGroup' => $task->getQueueGroup(),
+                'maxLaunches' => $task->getMaxLaunches() ?: 'unlimited',
+                'time' => date('d.m.y H:i:s'),
+            ]
+        );
 
         return $this;
     }
