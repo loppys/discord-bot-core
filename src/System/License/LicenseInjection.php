@@ -55,9 +55,6 @@ trait LicenseInjection
 
         if (empty($this->keys[$guild])) {
             ConsoleLogger::showMessage("Warning {$this->getComponentName()}: Guild {$guild} has no keys.");
-            ConsoleLogger::showMessage(
-                "notification on the site created. uid: {$this->getComponentName()}-{$guild}-757"
-            );
         }
 
         $this->_setInjectionTask($guild);

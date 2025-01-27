@@ -16,13 +16,6 @@ class HttpClient extends AbstractClient implements HttpClientInterface
         $this->client = new GuzzleClient();
     }
 
-    public function connect(): bool
-    {
-        $this->isConnected = true;
-
-        return $this->isConnected;
-    }
-
     public function execute(string $command): mixed
     {
         trigger_error('HTTP client does not support generic commands.');
