@@ -14,7 +14,6 @@
     "vengine-libs/dbal": "*",
     "vengine-libs/console": "*",
     "team-reflex/discord-php": "^10.3",
-    "symfony/filesystem": "^7.2",
     "composer/semver": "^3.3",
     "monolog/monolog": "^3.3",
     "php-ffmpeg/php-ffmpeg": "*",
