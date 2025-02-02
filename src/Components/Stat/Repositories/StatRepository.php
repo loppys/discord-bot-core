@@ -62,10 +62,10 @@ class StatRepository extends AbstractRepository
         );
 
         $this->_table
-            ->addTableDependecy(
+            ->addTableDependency(
                 $statLevelTable->setAliasTable('stl')->setJoinMethod(JoinTypeStorage::LEFT)
             )
-            ->addTableDependecy(
+            ->addTableDependency(
                 $statMessagesTable->setAliasTable('stm')->setJoinMethod(JoinTypeStorage::LEFT)
             )
         ;

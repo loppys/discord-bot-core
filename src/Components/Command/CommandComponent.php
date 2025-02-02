@@ -19,6 +19,8 @@ use Doctrine\DBAL\Exception;
  */
 class CommandComponent extends AbstractComponent
 {
+    protected string $mainServiceClass = CommandService::class;
+
     protected array $migrationList = [
         __DIR__ . '/Migrations/',
     ];
@@ -35,11 +37,6 @@ class CommandComponent extends AbstractComponent
             'type' => TaskTypeStorage::PERIODIC
         ],
     ];
-
-    public function __construct(CommandService $service)
-    {
-        parent::__construct($service);
-    }
 
     /**
      * @throws Exception

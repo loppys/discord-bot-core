@@ -8,6 +8,7 @@ use Vengine\Libraries\Repository\AbstractRepository;
 /**
  * @method SettingsLogEntity|null createEntity(array $criteria = [])
  * @method SettingsLogEntity|null createEntityByArray(array $data)
+ * @method SettingsLogEntity|null newEntity()
  */
 class SettingsLogRepository extends AbstractRepository
 {

@@ -41,6 +41,13 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
 
     protected mixed $service;
 
+    protected string $mainServiceClass = '';
+
+    /**
+     * @see ['propertyName' => 'serviceClass']
+     */
+    protected array $additionServices = [];
+
     protected bool $forceRunMigrations = true;
 
     /**
@@ -68,13 +75,16 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
      * @throws Exception
      * @throws ReflectionException
      */
-    public function __construct(mixed $service)
+    public function __construct(mixed $service = null)
     {
         parent::__construct();
 
         $this->core = $core = Core::getInstance();
 
-        $this->service = $service;
+        if ($service !== null) {
+            $this->service = $service;
+        }
+
         $this->discord = $core->getDiscord();
         $this->components = $core->components;
         $this->licenseManager = $core->licenseManager;
@@ -129,7 +139,7 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
             } else {
                 foreach ($this->commands as $command) {
                     if (!is_object($command)) {
-                        $command = Container::getInstance()->createObject($command);
+                        $command = $core->getContainer()->createObject($command);
                     }
 
                     if (!$command instanceof CommandMigration) {
@@ -141,6 +151,29 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
                         ->addCommandMigration($command)
                     ;
                 }
+            }
+        }
+
+        if (
+            empty($this->service)
+            && !empty($this->mainServiceClass)
+            && class_exists($this->mainServiceClass)
+        ) {
+            $this->service = $core->getContainer()->createObject($this->mainServiceClass);
+        }
+
+        foreach ($this->additionServices as $propertyName => $serviceClass) {
+            if (empty($propertyName) || !class_exists($serviceClass)) {
+                continue;
+            }
+
+            $setter = 'set' . ucfirst($propertyName);
+            $serviceObject = $core->getContainer()->createObject($serviceClass);
+
+            if (method_exists($this, $setter)) {
+                $this->{$setter}($serviceObject);
+            } elseif (property_exists($this, $propertyName)) {
+                $this->{$propertyName} = $serviceObject;
             }
         }
 
@@ -162,6 +195,10 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
 
     public function getService(): mixed
     {
+        if (empty($this->service)) {
+            return null;
+        }
+
         return $this->service;
     }
 

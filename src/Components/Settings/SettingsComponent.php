@@ -15,6 +15,8 @@ use Doctrine\DBAL\Exception;
  */
 class SettingsComponent extends AbstractComponent
 {
+    protected string $mainServiceClass = SettingsService::class;
+
     protected array $migrationList = [
         __DIR__ . '/Migrations/'
     ];
@@ -33,11 +35,6 @@ class SettingsComponent extends AbstractComponent
             'after.updateSetting'
         ],
     ];
-
-    public function __construct(SettingsService $service)
-    {
-        parent::__construct($service);
-    }
 
     /**
      * @throws Exception
