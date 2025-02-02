@@ -13,14 +13,11 @@ use Doctrine\DBAL\Exception;
  */
 class AccessComponent extends AbstractComponent
 {
+    protected string $mainServiceClass = BaseAccessService::class;
+
     protected array $migrationList = [
         __DIR__ . '/Migrations/access_install.sql'
     ];
-
-    public function __construct(BaseAccessService $service)
-    {
-        parent::__construct($service);
-    }
 
     /**
      * @throws Exception

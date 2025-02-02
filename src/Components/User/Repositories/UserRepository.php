@@ -20,12 +20,4 @@ class UserRepository extends AbstractRepository
     ];
 
     protected string $entityClass = User::class;
-
-    /**
-     * @return array
-     */
-    public function getColumnMap(): array
-    {
-        return $this->columnMap;
-    }
 }

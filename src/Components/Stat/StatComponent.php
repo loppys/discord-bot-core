@@ -4,12 +4,10 @@ namespace Discord\Bot\Components\Stat;
 
 use Discord\Bot\Components\Stat\DTO\LevelCalculation;
 use Discord\Bot\Components\Stat\DTO\StatQuery;
-use Discord\Bot\Components\Stat\Entity\StatEntity;
 use Discord\Bot\Components\Stat\Services\LevelCalculationService;
 use Discord\Bot\Components\Stat\Services\StatService;
 use Discord\Bot\Components\AbstractComponent;
 use Discord\Bot\Components\Stat\Storages\StatQueryTypeStorage;
-use Discord\Bot\Components\User\Entity\User;
 use Discord\Bot\Scheduler\Storage\TaskTypeStorage;
 
 /**
@@ -17,6 +15,12 @@ use Discord\Bot\Scheduler\Storage\TaskTypeStorage;
  */
 class StatComponent extends AbstractComponent
 {
+    protected string $mainServiceClass = StatService::class;
+
+    protected array $additionServices = [
+        'levelCalculationService' => LevelCalculationService::class,
+    ];
+
     protected LevelCalculationService $levelCalculationService;
 
     protected array $migrationList = [
@@ -30,13 +34,6 @@ class StatComponent extends AbstractComponent
             'type' => TaskTypeStorage::PERIODIC,
         ]
     ];
-
-    public function __construct(StatService $service, LevelCalculationService $levelCalculationService)
-    {
-        parent::__construct($service);
-
-        $this->levelCalculationService = $levelCalculationService;
-    }
 
     public function reCalcLevel(LevelCalculation $levelCalculation, string $userId, string $serverId): void
     {

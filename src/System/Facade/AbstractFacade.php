@@ -46,13 +46,7 @@ abstract class AbstractFacade
 
     public function __get($name): mixed
     {
-        $this
-            ->getSystemStat()
-            ->addNewStat($name, "use component `{$name}`")
-            ->add($name)
-        ;
-
-        return $this->facade->get($name);
+        return $this->get($name);
     }
 
     public function __set(string $name, $value): void
