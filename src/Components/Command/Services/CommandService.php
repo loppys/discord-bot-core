@@ -168,7 +168,7 @@ class CommandService
             $commandProcess->setInteraction($interaction);
         }
 
-        $commandProcess = Core::getInstance()->components;
+        $commandProcess->setComponents(Core::getInstance()->components);
 
         $result = $commandProcess->process(
             $message,
