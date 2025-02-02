@@ -228,7 +228,7 @@ class CommandService
      */
     public function executeCommandMigration(?array $migrations = null): bool
     {
-        /** @var CommandMigration $item */
+        /** @var CommandMigration|string $item */
         foreach ($migrations ?? $this->queueManager->compareQueue() as $item) {
             if (!is_object($item)) {
                 $item = Container::getInstance()->createObject($item);

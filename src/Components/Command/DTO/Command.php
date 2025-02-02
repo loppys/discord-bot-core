@@ -16,14 +16,17 @@ class Command
 
     protected array $arguments = [];
 
-    protected bool $newScheme = false;
-
     public function __construct(string $message)
     {
         $this->rawCommand = $message;
         $this->tempParts = explode(' ', $this->rawCommand);
 
         $this->parseName()->parseArguments()->parseFlags();
+    }
+
+    public function getRawCommand(): string
+    {
+        return $this->rawCommand;
     }
 
     public function getCommandName(): string
