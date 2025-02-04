@@ -115,22 +115,6 @@ class ComponentsFacade extends AbstractFacade
             throw new RuntimeException("the {$class} must inherit from ComponentInterface");
         }
 
-        $constructor = $reflection->getConstructor();
-        if ($constructor === null) {
-            return false;
-        }
-
-        $params = $constructor->getParameters();
-
-        // проверки из-за DI, т.к. нужно точно знать что создавать
-        if (!$params[0]->hasType()) {
-            return false;
-        }
-
-        if ($params[0]->getType() === null) {
-            return false;
-        }
-
-        return $params[0]->getType()->getName() !== 'mixed';
+        return true;
     }
 }
