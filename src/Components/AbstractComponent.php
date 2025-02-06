@@ -11,6 +11,7 @@ use Discord\Bot\Scheduler\Parts\Executor;
 use Discord\Bot\Scheduler\Storage\QueueGroupStorage;
 use Discord\Bot\System\Events\AbstractSystemEventHandle;
 use Discord\Bot\System\GlobalRepository\Traits\LogSourceTrait;
+use Discord\Bot\System\Traits\SettingsHandleTrait;
 use Vengine\Libraries\Console\ConsoleLogger;
 use Discord\Bot\System\Interfaces\ComponentInterface;
 use Discord\Bot\System\ComponentsFacade;
@@ -25,11 +26,11 @@ use Discord\Bot\System\Traits\SystemStatAccessTrait;
 use Discord\Discord;
 use Doctrine\DBAL\Exception;
 use Discord\Bot\Core;
-use Loader\System\Container;
 use ReflectionException;
 
 abstract class AbstractComponent extends AbstractSystemEventHandle implements ComponentInterface
 {
+    use SettingsHandleTrait;
     use SystemStatAccessTrait;
     use LogSourceTrait;
     use LicenseInjection;
@@ -48,20 +49,6 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
      * @see ['propertyName' => 'serviceClass']
      */
     protected array $additionServices = [];
-
-    /**
-     * @var array<Setting|array{
-     *     stg_guild:string,
-     *     stg_name:string,
-     *     stg_value:string,
-     *     stg_type:string,
-     *     stg_enabled:bool,
-     *     stg_required:bool,
-     *     stg_system:bool,
-     *     stg_hidden:bool
-     * }>
-     */
-    protected array $settings = [];
 
     protected bool $forceRunMigrations = true;
 
@@ -192,13 +179,7 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
             }
         }
 
-        foreach ($this->settings as $setting) {
-            if ($this instanceof SettingsComponent) {
-                $this->addSetting($setting);
-            } else {
-                $this->components->settings->addSetting($setting);
-            }
-        }
+        $this->settingsHandle();
 
         $this->getSystemStat()->add(TypeSystemStat::COMPONENT);
     }
