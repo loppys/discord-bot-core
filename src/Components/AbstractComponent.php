@@ -4,6 +4,7 @@ namespace Discord\Bot\Components;
 
 use Discord\Bot\Components\Command\DTO\CommandMigration;
 use Discord\Bot\Components\Command\Services\CommandService;
+use Discord\Bot\Components\Settings\Entity\Setting;
 use Discord\Bot\Components\Settings\SettingsComponent;
 use Discord\Bot\Scheduler\Parts\DefaultTask;
 use Discord\Bot\Scheduler\Parts\Executor;
@@ -47,6 +48,20 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
      * @see ['propertyName' => 'serviceClass']
      */
     protected array $additionServices = [];
+
+    /**
+     * @var array<Setting|array{
+     *     stg_guild:string,
+     *     stg_name:string,
+     *     stg_value:string,
+     *     stg_type:string,
+     *     stg_enabled:bool,
+     *     stg_required:bool,
+     *     stg_system:bool,
+     *     stg_hidden:bool
+     * }>
+     */
+    protected array $settings = [];
 
     protected bool $forceRunMigrations = true;
 
@@ -174,6 +189,14 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
                 $this->{$setter}($serviceObject);
             } elseif (property_exists($this, $propertyName)) {
                 $this->{$propertyName} = $serviceObject;
+            }
+        }
+
+        foreach ($this->settings as $setting) {
+            if ($this instanceof SettingsComponent) {
+                $this->addSetting($setting);
+            } else {
+                $this->components->settings->addSetting($setting);
             }
         }
 
