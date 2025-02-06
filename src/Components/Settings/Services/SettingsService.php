@@ -38,11 +38,15 @@ class SettingsService
      */
     public function addSetting(array|Setting $setting): static
     {
-        if (is_array($setting)) {
-            $this->settingsRepository->save($setting);
-        } else {
-            $this->settingsRepository->saveByEntity($setting);
+        if ($this->hasSetting($setting->stg_guild, $setting->stg_name)) {
+            return $this;
         }
+
+        if (is_array($setting)) {
+            $setting = $this->settingsRepository->createEntityByArray($setting);
+        }
+
+        $this->settingsRepository->saveByEntity($setting);
 
         return $this;
     }
@@ -62,7 +66,7 @@ class SettingsService
             return false;
         }
 
-        if ($setting->getStg_system()) {
+        if ($setting->getStgValue()) {
             return false;
         }
 

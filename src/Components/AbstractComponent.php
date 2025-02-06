@@ -4,12 +4,14 @@ namespace Discord\Bot\Components;
 
 use Discord\Bot\Components\Command\DTO\CommandMigration;
 use Discord\Bot\Components\Command\Services\CommandService;
+use Discord\Bot\Components\Settings\Entity\Setting;
 use Discord\Bot\Components\Settings\SettingsComponent;
 use Discord\Bot\Scheduler\Parts\DefaultTask;
 use Discord\Bot\Scheduler\Parts\Executor;
 use Discord\Bot\Scheduler\Storage\QueueGroupStorage;
 use Discord\Bot\System\Events\AbstractSystemEventHandle;
 use Discord\Bot\System\GlobalRepository\Traits\LogSourceTrait;
+use Discord\Bot\System\Traits\SettingsHandleTrait;
 use Vengine\Libraries\Console\ConsoleLogger;
 use Discord\Bot\System\Interfaces\ComponentInterface;
 use Discord\Bot\System\ComponentsFacade;
@@ -24,11 +26,11 @@ use Discord\Bot\System\Traits\SystemStatAccessTrait;
 use Discord\Discord;
 use Doctrine\DBAL\Exception;
 use Discord\Bot\Core;
-use Loader\System\Container;
 use ReflectionException;
 
 abstract class AbstractComponent extends AbstractSystemEventHandle implements ComponentInterface
 {
+    use SettingsHandleTrait;
     use SystemStatAccessTrait;
     use LogSourceTrait;
     use LicenseInjection;
@@ -176,6 +178,8 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
                 $this->{$propertyName} = $serviceObject;
             }
         }
+
+        $this->settingsHandle();
 
         $this->getSystemStat()->add(TypeSystemStat::COMPONENT);
     }
