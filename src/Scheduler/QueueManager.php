@@ -145,4 +145,9 @@ class QueueManager implements QueueManagerInterface
     {
         return count($this->tasks);
     }
+
+    public function resetTasks(): void
+    {
+        $this->tasks = [];
+    }
 }

@@ -56,7 +56,7 @@ class SettingsService
      */
     public function removeSetting(string $guild, string $name): bool
     {
-        if ($this->hasSetting($guild, $name)) {
+        if (!$this->hasSetting($guild, $name)) {
             return false;
         }
 
@@ -147,10 +147,6 @@ class SettingsService
         foreach (DefaultSettingStorage::SETTING_MAP as $name => $map) {
             if ($this->hasSetting($guild, $name)) {
                 continue;
-            }
-
-            if (!empty($map['stg_value']) && is_array($map['stg_value'])) {
-                $map['stg_value'] = json_encode($map['stg_value']);
             }
 
             if (!empty($map['stg_value']) && is_bool($map['stg_value'])) {

@@ -68,4 +68,12 @@ class DiscordEventManager
 
         return $this;
     }
+
+    public function reset(): void
+    {
+        ConsoleLogger::showMessage('reset discord events');
+
+        $this->defaultEvents = [];
+        $this->registeredEventList = [];
+    }
 }
