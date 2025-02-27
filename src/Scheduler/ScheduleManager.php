@@ -51,6 +51,13 @@ class ScheduleManager
         });
     }
 
+    public function stop(): void
+    {
+        ConsoleLogger::showMessage('stop Scheduler');
+
+        $this->loop->stop();
+    }
+
     public function setQueueManager(QueueManagerInterface $queueManager): static
     {
         if (!empty($this->queueManager) && $this->queueManager->countTasks() > 0) {
@@ -309,5 +316,10 @@ class ScheduleManager
         }
 
         return $this->queueManager->hasTask($name);
+    }
+
+    public function getTasks(): array
+    {
+        return $this->queueManager->getTasks();
     }
 }

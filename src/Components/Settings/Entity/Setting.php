@@ -9,7 +9,7 @@ use Vengine\Libraries\Repository\Entity\AbstractEntity;
  * @property int $stg_id
  * @property string $stg_guild
  * @property string $stg_name
- * @property string $stg_value
+ * @property string|array $stg_value
  * @property string $stg_type
  * @property bool $stg_enabled
  * @property bool $stg_required
@@ -18,7 +18,7 @@ use Vengine\Libraries\Repository\Entity\AbstractEntity;
  */
 class Setting extends AbstractEntity
 {
-    public function getStgValue(): string
+    public function getStgValue(): string|array
     {
         return match ($this->getDataByName('stg_type')) {
             SettingsTypeStorage::SELECT => @unserialize($this->getDataByName('stg_value')),
@@ -26,7 +26,7 @@ class Setting extends AbstractEntity
         };
     }
 
-    public function setStgValue(string $stg_value): void
+    public function setStgValue(string|array $stg_value): void
     {
         $data = match ($this->getDataByName('stg_type')) {
             SettingsTypeStorage::BOOL => (bool)$stg_value,

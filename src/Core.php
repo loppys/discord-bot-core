@@ -81,12 +81,21 @@ class Core implements SingletonInterface, ComponentLicenseInterface
         return $instance;
     }
 
+    public static function hasInstance(): bool
+    {
+        return self::$instance !== null;
+    }
+
     /**
      * @throws ReflectionException
      * @throws IntentException
      */
     public static function create(Configurator $configurator): static
     {
+        if (static::hasInstance()) {
+            return static::getInstance();
+        }
+
         ConsoleLogger::showMessage('start core create');
 
         $_SERVER['create.auto'] = true;
@@ -223,6 +232,31 @@ class Core implements SingletonInterface, ComponentLicenseInterface
         ConsoleLogger::showMessage('app run');
 
         $this->discord->run();
+    }
+
+    /**
+     * @throws ReflectionException
+     * @throws IntentException
+     */
+    public function restart(?Configurator $configurator): void
+    {
+        ConsoleLogger::showMessage(PHP_EOL . 'Restart app' . PHP_EOL);
+
+        $this->discord->close();
+
+        $this->scheduleManager->stop();
+        $this->db->reConnect();
+        $this->discordEventManager->reset();
+
+        Container::getInstance()->getObjectStorage()->delete(strtolower(static::class));
+
+        static::$instance = null;
+
+        $configurator->setInitDI(true);
+
+        ConsoleLogger::showMessage(PHP_EOL . 'App reset done' . PHP_EOL);
+
+        static::create($configurator)->run();
     }
 
     public function getDiscord(): Discord
