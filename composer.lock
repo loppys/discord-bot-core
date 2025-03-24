@@ -963,12 +963,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Seldaek/monolog.git",
-                "reference": "548eeb3f1e313d943712b9fab0dc2e865a5a7bfc"
+                "reference": "2b8777dfb48a01321fa1532254f7603a6d4ceebe"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/548eeb3f1e313d943712b9fab0dc2e865a5a7bfc",
-                "reference": "548eeb3f1e313d943712b9fab0dc2e865a5a7bfc",
+                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/2b8777dfb48a01321fa1532254f7603a6d4ceebe",
+                "reference": "2b8777dfb48a01321fa1532254f7603a6d4ceebe",
                 "shasum": ""
             },
             "require": {
@@ -1059,7 +1059,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-02-03T10:34:40+00:00"
+            "time": "2025-03-20T09:27:50+00:00"
         },
         {
             "name": "nesbot/carbon",
@@ -1067,12 +1067,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/CarbonPHP/carbon.git",
-                "reference": "0ab0ec154643cfdfb4e5abfd4ef6481f64ad42f2"
+                "reference": "4fa8736c801ee2e6461769b15cdac0d67a8bb697"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/CarbonPHP/carbon/zipball/0ab0ec154643cfdfb4e5abfd4ef6481f64ad42f2",
-                "reference": "0ab0ec154643cfdfb4e5abfd4ef6481f64ad42f2",
+                "url": "https://api.github.com/repos/CarbonPHP/carbon/zipball/4fa8736c801ee2e6461769b15cdac0d67a8bb697",
+                "reference": "4fa8736c801ee2e6461769b15cdac0d67a8bb697",
                 "shasum": ""
             },
             "require": {
@@ -1166,7 +1166,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-02-15T16:04:24+00:00"
+            "time": "2025-03-15T17:39:37+00:00"
         },
         {
             "name": "paragonie/constant_time_encoding",
@@ -2926,12 +2926,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/clock.git",
-                "reference": "b81435fbd6648ea425d1ee96a2d8e68f4ceacd24"
+                "reference": "a895dee08034ff27c54ca03f6bab0dce941e2c93"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/clock/zipball/b81435fbd6648ea425d1ee96a2d8e68f4ceacd24",
-                "reference": "b81435fbd6648ea425d1ee96a2d8e68f4ceacd24",
+                "url": "https://api.github.com/repos/symfony/clock/zipball/a895dee08034ff27c54ca03f6bab0dce941e2c93",
+                "reference": "a895dee08034ff27c54ca03f6bab0dce941e2c93",
                 "shasum": ""
             },
             "require": {
@@ -2976,7 +2976,7 @@
                 "time"
             ],
             "support": {
-                "source": "https://github.com/symfony/clock/tree/v7.2.0"
+                "source": "https://github.com/symfony/clock/tree/7.3"
             },
             "funding": [
                 {
@@ -2992,7 +2992,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-09-25T14:21:43+00:00"
+            "time": "2025-03-17T19:44:19+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",
@@ -3068,12 +3068,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/options-resolver.git",
-                "reference": "62c278c5ba8c2904dc5665042c3d17e83829fd00"
+                "reference": "90d6605f1a349e2bf1a8c69c977a5a0063fedee7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/options-resolver/zipball/62c278c5ba8c2904dc5665042c3d17e83829fd00",
-                "reference": "62c278c5ba8c2904dc5665042c3d17e83829fd00",
+                "url": "https://api.github.com/repos/symfony/options-resolver/zipball/90d6605f1a349e2bf1a8c69c977a5a0063fedee7",
+                "reference": "90d6605f1a349e2bf1a8c69c977a5a0063fedee7",
                 "shasum": ""
             },
             "require": {
@@ -3127,7 +3127,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-01-12T17:25:01+00:00"
+            "time": "2025-03-05T10:15:41+00:00"
         },
         {
             "name": "symfony/polyfill-mbstring",
@@ -3439,12 +3439,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/translation.git",
-                "reference": "d0919ecbd0a95ba09dd5f02e1f3c27bae534486e"
+                "reference": "cb5139b00671b711ff292d51dd6190c6d2eb499d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/translation/zipball/d0919ecbd0a95ba09dd5f02e1f3c27bae534486e",
-                "reference": "d0919ecbd0a95ba09dd5f02e1f3c27bae534486e",
+                "url": "https://api.github.com/repos/symfony/translation/zipball/cb5139b00671b711ff292d51dd6190c6d2eb499d",
+                "reference": "cb5139b00671b711ff292d51dd6190c6d2eb499d",
                 "shasum": ""
             },
             "require": {
@@ -3526,7 +3526,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-02-13T10:27:54+00:00"
+            "time": "2025-03-10T22:51:42+00:00"
         },
         {
             "name": "symfony/translation-contracts",
@@ -3686,16 +3686,16 @@
         },
         {
             "name": "team-reflex/discord-php",
-            "version": "v10.3.8",
+            "version": "v10.4.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/discord-php/DiscordPHP.git",
-                "reference": "d97dc708000437ae4b1fd69db9e8c371f894e678"
+                "reference": "9ab9aa0eb970446b6c660f067499c8dd786e2621"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/discord-php/DiscordPHP/zipball/d97dc708000437ae4b1fd69db9e8c371f894e678",
-                "reference": "d97dc708000437ae4b1fd69db9e8c371f894e678",
+                "url": "https://api.github.com/repos/discord-php/DiscordPHP/zipball/9ab9aa0eb970446b6c660f067499c8dd786e2621",
+                "reference": "9ab9aa0eb970446b6c660f067499c8dd786e2621",
                 "shasum": ""
             },
             "require": {
@@ -3757,7 +3757,7 @@
                 "chat": "https://discord.gg/dphp",
                 "docs": "https://discord-php.github.io/DiscordPHP/",
                 "issues": "https://github.com/discord-php/DiscordPHP/issues",
-                "source": "https://github.com/discord-php/DiscordPHP/tree/v10.3.8",
+                "source": "https://github.com/discord-php/DiscordPHP/tree/v10.4.3",
                 "wiki": "https://github.com/discord-php/DiscordPHP/wiki"
             },
             "funding": [
@@ -3774,7 +3774,7 @@
                     "type": "patreon"
                 }
             ],
-            "time": "2025-02-12T18:51:00+00:00"
+            "time": "2025-03-23T02:12:15+00:00"
         },
         {
             "name": "trafficcophp/bytebuffer",
