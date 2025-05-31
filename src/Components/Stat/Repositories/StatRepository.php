@@ -2,14 +2,14 @@
 
 namespace Discord\Bot\Components\Stat\Repositories;
 
-use Discord\Bot\System\DBAL;
+use Vengine\Libraries\DBAL\Adapter;
 use Discord\Bot\Components\Stat\Entity\StatEntity;
-use Discord\Bot\System\Repository\AbstractRepository;
-use Discord\Bot\System\Repository\CriteriaComparator;
-use Discord\Bot\System\Repository\DTO\DependencyTable;
-use Discord\Bot\System\Repository\Schema\Table;
-use Discord\Bot\System\Repository\Schema\TableField;
-use Discord\Bot\System\Repository\Storage\JoinTypeStorage;
+use Vengine\Libraries\Repository\AbstractRepository;
+use Vengine\Libraries\Repository\CriteriaComparator;
+use Vengine\Libraries\Repository\DTO\DependencyTable;
+use Vengine\Libraries\Repository\Schema\Table;
+use Vengine\Libraries\Repository\Schema\TableField;
+use Vengine\Libraries\Repository\Storage\JoinTypeStorage;
 
 class StatRepository extends AbstractRepository
 {
@@ -32,7 +32,7 @@ class StatRepository extends AbstractRepository
         return parent::createEntity($criteria);
     }
 
-    public function __construct(DBAL $db, CriteriaComparator $criteriaComparator)
+    public function __construct(Adapter $db, CriteriaComparator $criteriaComparator)
     {
         $this->dependencyTableList[] = (new DependencyTable())
             ->setFromTable('__stat_level')
@@ -62,10 +62,10 @@ class StatRepository extends AbstractRepository
         );
 
         $this->_table
-            ->addTableDependecy(
+            ->addTableDependency(
                 $statLevelTable->setAliasTable('stl')->setJoinMethod(JoinTypeStorage::LEFT)
             )
-            ->addTableDependecy(
+            ->addTableDependency(
                 $statMessagesTable->setAliasTable('stm')->setJoinMethod(JoinTypeStorage::LEFT)
             )
         ;

@@ -10,7 +10,8 @@ use Discord\Bot\Scheduler\Parts\Executor;
 use Discord\Bot\Scheduler\Storage\QueueGroupStorage;
 use Discord\Bot\System\Events\AbstractSystemEventHandle;
 use Discord\Bot\System\GlobalRepository\Traits\LogSourceTrait;
-use Discord\Bot\System\Helpers\ConsoleLogger;
+use Discord\Bot\System\Traits\SettingsHandleTrait;
+use Vengine\Libraries\Console\ConsoleLogger;
 use Discord\Bot\System\Interfaces\ComponentInterface;
 use Discord\Bot\System\ComponentsFacade;
 use Discord\Bot\System\License\DTO\ComponentInfo;
@@ -19,17 +20,14 @@ use Discord\Bot\System\License\LicenseInjection;
 use Discord\Bot\System\License\LicenseManager;
 use Discord\Bot\System\License\Storages\ActivateMethodStorage;
 use Discord\Bot\System\License\Storages\KeyPrefixStorage;
-use Discord\Bot\System\Storages\TypeSystemStat;
-use Discord\Bot\System\Traits\SystemStatAccessTrait;
 use Discord\Discord;
 use Doctrine\DBAL\Exception;
 use Discord\Bot\Core;
-use Loader\System\Container;
 use ReflectionException;
 
 abstract class AbstractComponent extends AbstractSystemEventHandle implements ComponentInterface
 {
-    use SystemStatAccessTrait;
+    use SettingsHandleTrait;
     use LogSourceTrait;
     use LicenseInjection;
 
@@ -40,6 +38,13 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
     protected Discord $discord;
 
     protected mixed $service;
+
+    protected string $mainServiceClass = '';
+
+    /**
+     * @see ['propertyName' => 'serviceClass']
+     */
+    protected array $additionServices = [];
 
     protected bool $forceRunMigrations = true;
 
@@ -68,13 +73,16 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
      * @throws Exception
      * @throws ReflectionException
      */
-    public function __construct(mixed $service)
+    public function __construct(mixed $service = null)
     {
         parent::__construct();
 
         $this->core = $core = Core::getInstance();
 
-        $this->service = $service;
+        if ($service !== null) {
+            $this->service = $service;
+        }
+
         $this->discord = $core->getDiscord();
         $this->components = $core->components;
         $this->licenseManager = $core->licenseManager;
@@ -129,7 +137,7 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
             } else {
                 foreach ($this->commands as $command) {
                     if (!is_object($command)) {
-                        $command = Container::getInstance()->createObject($command);
+                        $command = $core->getContainer()->createObject($command);
                     }
 
                     if (!$command instanceof CommandMigration) {
@@ -144,7 +152,30 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
             }
         }
 
-        $this->getSystemStat()->add(TypeSystemStat::COMPONENT);
+        if (
+            empty($this->service)
+            && !empty($this->mainServiceClass)
+            && class_exists($this->mainServiceClass)
+        ) {
+            $this->service = $core->getContainer()->createObject($this->mainServiceClass);
+        }
+
+        foreach ($this->additionServices as $propertyName => $serviceClass) {
+            if (empty($propertyName) || !class_exists($serviceClass)) {
+                continue;
+            }
+
+            $setter = 'set' . ucfirst($propertyName);
+            $serviceObject = $core->getContainer()->createObject($serviceClass);
+
+            if (method_exists($this, $setter)) {
+                $this->{$setter}($serviceObject);
+            } elseif (property_exists($this, $propertyName)) {
+                $this->{$propertyName} = $serviceObject;
+            }
+        }
+
+        $this->settingsHandle();
     }
 
     /**
@@ -162,6 +193,10 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
 
     public function getService(): mixed
     {
+        if (empty($this->service)) {
+            return null;
+        }
+
         return $this->service;
     }
 

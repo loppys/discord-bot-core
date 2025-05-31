@@ -2,10 +2,10 @@
 
 namespace Discord\Bot\Components\Command\Repositories;
 
-use Discord\Bot\System\Repository\AbstractRepository;
+use Vengine\Libraries\Repository\AbstractRepository;
 use Discord\Bot\Components\Command\Entity\CommandEntity;
-use Discord\Bot\System\Repository\Entity\AbstractEntity;
-use Discord\Bot\System\Repository\Storage\JoinTypeStorage;
+use Vengine\Libraries\Repository\Entity\AbstractEntity;
+use Vengine\Libraries\Repository\Storage\JoinTypeStorage;
 
 /**
  * @method CommandEntity|null createEntity(array $criteria = [])

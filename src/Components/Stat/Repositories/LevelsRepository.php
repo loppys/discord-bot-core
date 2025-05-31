@@ -2,7 +2,7 @@
 
 namespace Discord\Bot\Components\Stat\Repositories;
 
-use Discord\Bot\System\Repository\AbstractRepository;
+use Vengine\Libraries\Repository\AbstractRepository;
 
 class LevelsRepository extends AbstractRepository
 {

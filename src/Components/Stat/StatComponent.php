@@ -9,14 +9,21 @@ use Discord\Bot\Components\Stat\Services\LevelCalculationService;
 use Discord\Bot\Components\Stat\Services\StatService;
 use Discord\Bot\Components\AbstractComponent;
 use Discord\Bot\Components\Stat\Storages\StatQueryTypeStorage;
-use Discord\Bot\Components\User\Entity\User;
 use Discord\Bot\Scheduler\Storage\TaskTypeStorage;
+use Doctrine\DBAL\Exception;
 
 /**
  * @method StatService getService()
+ * @property StatService $service
  */
 class StatComponent extends AbstractComponent
 {
+    protected string $mainServiceClass = StatService::class;
+
+    protected array $additionServices = [
+        'levelCalculationService' => LevelCalculationService::class,
+    ];
+
     protected LevelCalculationService $levelCalculationService;
 
     protected array $migrationList = [
@@ -31,13 +38,19 @@ class StatComponent extends AbstractComponent
         ]
     ];
 
-    public function __construct(StatService $service, LevelCalculationService $levelCalculationService)
+    /**
+     * @throws Exception
+     */
+    public function update(StatEntity $statEntity): bool|StatEntity
     {
-        parent::__construct($service);
+        $stat = StatQuery::createFromEntity($statEntity)->setQueryType(StatQueryTypeStorage::UPDATE);
 
-        $this->levelCalculationService = $levelCalculationService;
+        return $this->service->updateStat($stat);
     }
 
+    /**
+     * @throws Exception
+     */
     public function reCalcLevel(LevelCalculation $levelCalculation, string $userId, string $serverId): void
     {
         $levelCalculation = $this->levelCalculationService->levelCalculate($levelCalculation);
@@ -52,7 +65,7 @@ class StatComponent extends AbstractComponent
         $stat = $this->getService()->getStat($statQuery);
 
         if ($stat !== null) {
-            $statQuery->setId($stat->st_id);
+            $statQuery->setQueryType(StatQueryTypeStorage::UPDATE)->setId($stat->st_id);
 
             $this->getService()->updateStat($statQuery);
         }

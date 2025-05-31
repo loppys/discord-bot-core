@@ -2,7 +2,7 @@
 
 namespace Discord\Bot\Components\Stat\Entity;
 
-use Discord\Bot\System\Repository\Entity\AbstractEntity;
+use Vengine\Libraries\Repository\Entity\AbstractEntity;
 
 /**
  * @property int $st_id

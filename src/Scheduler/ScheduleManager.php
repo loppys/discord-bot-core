@@ -2,7 +2,6 @@
 
 namespace Discord\Bot\Scheduler;
 
-use Discord\Bot\Core;
 use Discord\Bot\Scheduler\Interface\QueueManagerInterface;
 use Discord\Bot\Scheduler\Parts\AbstractTask;
 use Discord\Bot\Scheduler\Parts\DefaultTask;
@@ -11,9 +10,7 @@ use Discord\Bot\Scheduler\Parts\PeriodicTask;
 use Discord\Bot\Scheduler\Storage\ExecuteSchemeStorage;
 use Discord\Bot\Scheduler\Storage\QueueGroupStorage;
 use Discord\Bot\Scheduler\Storage\TaskTypeStorage;
-use Discord\Bot\System\Helpers\ConsoleLogger;
-use Discord\Bot\System\Storages\TypeSystemStat;
-use Discord\Bot\System\Traits\SystemStatAccessTrait;
+use Vengine\Libraries\Console\ConsoleLogger;
 use Loader\System\Traits\ContainerTrait;
 use React\EventLoop\LoopInterface;
 use React\EventLoop\TimerInterface;
@@ -21,9 +18,8 @@ use React\EventLoop\TimerInterface;
 class ScheduleManager
 {
     use ContainerTrait;
-    use SystemStatAccessTrait;
 
-    protected int $executeInterval = 30;
+    protected int $executeInterval = 15;
 
     protected QueueManagerInterface $queueManager;
 
@@ -52,6 +48,13 @@ class ScheduleManager
         });
     }
 
+    public function stop(): void
+    {
+        ConsoleLogger::showMessage('stop Scheduler');
+
+        $this->loop->stop();
+    }
+
     public function setQueueManager(QueueManagerInterface $queueManager): static
     {
         if (!empty($this->queueManager) && $this->queueManager->countTasks() > 0) {
@@ -67,15 +70,20 @@ class ScheduleManager
 
     public function addTask(AbstractTask $task): static
     {
-        $this->getSystemStat()->add(TypeSystemStat::SCHEDULER);
-
         if ($task->getType() === TaskTypeStorage::PERIODIC && $task->getQueueGroup() !== QueueGroupStorage::PERIODIC) {
             $task->setQueueGroup(QueueGroupStorage::PERIODIC);
         }
 
         $this->queueManager->addTask($task);
 
-        ConsoleLogger::showMessage("add schedule task: {$task->getName()}");
+        ConsoleLogger::mixedMessage(
+            "add schedule task: {$task->getName()}",
+            [
+                'queueGroup' => $task->getQueueGroup(),
+                'maxLaunches' => $task->getMaxLaunches() ?: 'unlimited',
+                'time' => date('d.m.y H:i:s'),
+            ]
+        );
 
         return $this;
     }
@@ -167,8 +175,6 @@ class ScheduleManager
     {
         ConsoleLogger::showMessage("execute schedule task: {$task->getName()}");
 
-        $this->getSystemStat()->add(TypeSystemStat::SCHEDULER);
-
         $result = $task->addLaunch()->getExecutor()->execute();
 
         if (
@@ -183,8 +189,6 @@ class ScheduleManager
 
     public function initConfigTasks(string $absolutePath): bool
     {
-        $this->getSystemStat()->add(TypeSystemStat::SCHEDULER);
-
         if (!file_exists($absolutePath)) {
             return false;
         }
@@ -208,8 +212,6 @@ class ScheduleManager
 
     public function initTaskByArray(array $taskArray, string $name = ''): bool
     {
-        $this->getSystemStat()->add(TypeSystemStat::SCHEDULER);
-
         if (empty($taskArray['name']) && !empty($name)) {
             $taskArray['name'] = $name;
         }
@@ -303,5 +305,10 @@ class ScheduleManager
         }
 
         return $this->queueManager->hasTask($name);
+    }
+
+    public function getTasks(): array
+    {
+        return $this->queueManager->getTasks();
     }
 }

@@ -16,14 +16,17 @@ class Command
 
     protected array $arguments = [];
 
-    protected bool $newScheme = false;
-
     public function __construct(string $message)
     {
         $this->rawCommand = $message;
         $this->tempParts = explode(' ', $this->rawCommand);
 
         $this->parseName()->parseArguments()->parseFlags();
+    }
+
+    public function getRawCommand(): string
+    {
+        return $this->rawCommand;
     }
 
     public function getCommandName(): string
@@ -65,10 +68,17 @@ class Command
             if ($part[0] === '-') {
                 $part = str_replace('-', '', $part);
 
-                $this->flags[] = $part;
+                $this->flags[$part] = $part;
 
                 unset($this->tempParts[$key]);
             }
+        }
+    }
+
+    public function removeFlag(string $key): void
+    {
+        if (!empty($this->flags[$key])) {
+            unset($this->flags[$key]);
         }
     }
 

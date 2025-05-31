@@ -19,14 +19,17 @@ interface QueueManagerInterface
     public function resetQueue(bool $resetPeriodicTask = false): void;
 
     /**
+     * @param bool $resetQueue
      * @param bool $resetPeriodicTask
      * @return array<QueueTaskInterface>
      */
-    public function compareQueue(bool $resetPeriodicTask = false): array;
+    public function compareQueue(bool $resetQueue = true, bool $resetPeriodicTask = false): array;
 
     public function getQueue(): array;
 
     public function getTasks(): array;
 
     public function countTasks(): int;
+
+    public function resetTasks(): void;
 }

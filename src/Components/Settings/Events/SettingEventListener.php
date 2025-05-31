@@ -6,7 +6,7 @@ use Discord\Bot\Components\Settings\Repositories\SettingsRepository;
 use Discord\Bot\System\Events\AbstractEventListener;
 use Discord\Bot\System\GlobalRepository\Entities\SettingsLogEntity;
 use Discord\Bot\System\GlobalRepository\SettingsLogRepository;
-use Discord\Bot\System\Helpers\ConsoleLogger;
+use Vengine\Libraries\Console\ConsoleLogger;
 use Doctrine\DBAL\Exception;
 
 class SettingEventListener extends AbstractEventListener
@@ -41,7 +41,7 @@ class SettingEventListener extends AbstractEventListener
             return;
         }
 
-        $entity = $this->settingsRepository->newEntity();
+        $entity = $this->settingsLogRepository->newEntity();
 
         $res = $setting->toArray() ?? [];
 

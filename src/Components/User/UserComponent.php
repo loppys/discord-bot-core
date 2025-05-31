@@ -5,7 +5,6 @@ namespace Discord\Bot\Components\User;
 use Discord\Bot\Components\AbstractComponent;
 use Discord\Bot\Components\Access\Storage\BaseAccessStorage;
 use Discord\Bot\Components\User\Entity\User;
-use Discord\Bot\Components\User\Repositories\UserRepository;
 use Discord\Bot\Components\User\Services\UserService;
 use Doctrine\DBAL\Exception;
 
@@ -14,14 +13,11 @@ use Doctrine\DBAL\Exception;
  */
 class UserComponent extends AbstractComponent
 {
+    protected string $mainServiceClass = UserService::class;
+
     protected array $migrationList = [
         __DIR__ . '/Migrations/user_table.sql'
     ];
-
-    public function __construct(UserService $service)
-    {
-        parent::__construct($service);
-    }
 
     /**
      * @throws Exception

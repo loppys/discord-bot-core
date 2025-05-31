@@ -4,7 +4,7 @@ namespace Discord\Bot\System\Discord;
 
 use Discord\Bot\Core;
 use Discord\Bot\System\Discord\Events\AbstractEvent;
-use Discord\Bot\System\Helpers\ConsoleLogger;
+use Vengine\Libraries\Console\ConsoleLogger;
 use Loader\System\Traits\ContainerTrait;
 use Discord\Discord;
 
@@ -67,5 +67,13 @@ class DiscordEventManager
         ConsoleLogger::showMessage("register discord event: {$eventName}");
 
         return $this;
+    }
+
+    public function reset(): void
+    {
+        ConsoleLogger::showMessage('reset discord events');
+
+        $this->defaultEvents = [];
+        $this->registeredEventList = [];
     }
 }

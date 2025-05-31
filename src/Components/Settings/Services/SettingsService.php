@@ -38,11 +38,15 @@ class SettingsService
      */
     public function addSetting(array|Setting $setting): static
     {
-        if (is_array($setting)) {
-            $this->settingsRepository->save($setting);
-        } else {
-            $this->settingsRepository->saveByEntity($setting);
+        if ($this->hasSetting($setting->stg_guild, $setting->stg_name)) {
+            return $this;
         }
+
+        if (is_array($setting)) {
+            $setting = $this->settingsRepository->createEntityByArray($setting);
+        }
+
+        $this->settingsRepository->saveByEntity($setting);
 
         return $this;
     }
@@ -52,7 +56,7 @@ class SettingsService
      */
     public function removeSetting(string $guild, string $name): bool
     {
-        if ($this->hasSetting($guild, $name)) {
+        if (!$this->hasSetting($guild, $name)) {
             return false;
         }
 
@@ -62,7 +66,7 @@ class SettingsService
             return false;
         }
 
-        if ($setting->getStg_system()) {
+        if ($setting->getStgValue()) {
             return false;
         }
 
@@ -143,10 +147,6 @@ class SettingsService
         foreach (DefaultSettingStorage::SETTING_MAP as $name => $map) {
             if ($this->hasSetting($guild, $name)) {
                 continue;
-            }
-
-            if (!empty($map['stg_value']) && is_array($map['stg_value'])) {
-                $map['stg_value'] = json_encode($map['stg_value']);
             }
 
             if (!empty($map['stg_value']) && is_bool($map['stg_value'])) {

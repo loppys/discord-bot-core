@@ -6,16 +6,16 @@ use Discord\Bot\Components\Access\Storage\BaseAccessStorage;
 
 class FlagAccessStorage
 {
-    public const LOW_ACCESS = [
+    public const ACCESS_LIST = [
         BaseAccessStorage::GUEST => [],
         BaseAccessStorage::USER => [
             CommandFlagStorage::PRIVATE_MESSAGE,
             CommandFlagStorage::IGNORE_ARGUMENTS,
-        ]
-    ];
-
-    public const HIGH_ACCESS = [
-        BaseAccessStorage::MODERATOR => self::LOW_ACCESS[BaseAccessStorage::USER],
+        ],
+        BaseAccessStorage::MODERATOR => [
+            CommandFlagStorage::PRIVATE_MESSAGE,
+            CommandFlagStorage::IGNORE_ARGUMENTS,
+        ],
         BaseAccessStorage::ADMIN => [
             CommandFlagStorage::OTHER_USER,
             CommandFlagStorage::PRIVATE_MESSAGE,
@@ -25,10 +25,7 @@ class FlagAccessStorage
             CommandFlagStorage::OTHER_USER,
             CommandFlagStorage::PRIVATE_MESSAGE,
             CommandFlagStorage::IGNORE_ARGUMENTS,
-        ]
-    ];
-
-    public const ABSOLUTE_ACCESS = [
-        BaseAccessStorage::DEVELOPER => CommandFlagStorage::ALL_FLAGS
+        ],
+        BaseAccessStorage::DEVELOPER => CommandFlagStorage::ALL_FLAGS,
     ];
 }

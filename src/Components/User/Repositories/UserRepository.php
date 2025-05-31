@@ -3,7 +3,7 @@
 namespace Discord\Bot\Components\User\Repositories;
 
 use Discord\Bot\Components\User\Entity\User;
-use Discord\Bot\System\Repository\AbstractRepository;
+use Vengine\Libraries\Repository\AbstractRepository;
 
 /**
  * @method User|null createEntity(array $criteria = [])
@@ -20,12 +20,4 @@ class UserRepository extends AbstractRepository
     ];
 
     protected string $entityClass = User::class;
-
-    /**
-     * @return array
-     */
-    public function getColumnMap(): array
-    {
-        return $this->columnMap;
-    }
 }

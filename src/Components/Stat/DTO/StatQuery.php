@@ -2,6 +2,7 @@
 
 namespace Discord\Bot\Components\Stat\DTO;
 
+use Discord\Bot\Components\Stat\Entity\StatEntity;
 use Discord\Bot\Components\Stat\Storages\StatQueryTypeStorage;
 use Discord\Bot\System\Traits\DefaultObjectCreatorTrait;
 
@@ -66,6 +67,35 @@ class StatQuery
         } else {
             $this->name = $name;
         }
+    }
+
+    public static function createFromEntity(StatEntity $entity): static
+    {
+        $obj = static::create();
+        $columnMap = $obj->getColumnMap();
+
+        $data = [];
+        foreach ($columnMap as $map) {
+            foreach ($map as $key => $propertyName) {
+                $data[$propertyName] = $entity->getDataByName($key);
+            }
+        }
+
+        return $obj->dataFill($data);
+    }
+
+    public function dataFill(array $data = []): static
+    {
+        foreach ($data as $property => $value) {
+            $method = 'set' . ucfirst($property);
+            if (method_exists($this, $method)) {
+                $this->{$method}($value);
+            } elseif (property_exists($this, $property)) {
+                $this->{$property} = $value;
+            }
+        }
+
+        return $this;
     }
 
     public function compareDataArray(): array
@@ -269,5 +299,10 @@ class StatQuery
     public function isDelete(): bool
     {
         return $this->queryType === StatQueryTypeStorage::DELETE;
+    }
+
+    public function getColumnMap(): array
+    {
+        return $this->columnMap;
     }
 }

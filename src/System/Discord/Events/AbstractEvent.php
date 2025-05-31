@@ -3,6 +3,7 @@
 namespace Discord\Bot\System\Discord\Events;
 
 use Discord\Bot\System\ComponentsFacade;
+use Discord\Bot\System\Discord\Interfaces\EventExtensionInterface;
 use Loader\System\Traits\ContainerTrait;
 
 abstract class AbstractEvent
@@ -23,6 +24,16 @@ abstract class AbstractEvent
     public function setComponents(ComponentsFacade $components): static
     {
         $this->components = $components;
+
+        if ($this instanceof EventExtensionInterface) {
+            foreach ($this->initComponentsInProperty() as $property => $componentName) {
+                if ($component = $this->components->get($componentName)) {
+                    if (property_exists($this, $property)) {
+                        $this->{$property} = $component;
+                    }
+                }
+            }
+        }
 
         return $this;
     }

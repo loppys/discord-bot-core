@@ -3,20 +3,18 @@
 namespace Discord\Bot;
 
 use Discord\Bot\System\Discord\DiscordEventManager;
-use Discord\Bot\System\DBAL;
+use Discord\Bot\System\Params;
+use Vengine\Libraries\DBAL\Adapter;
 use Discord\Bot\System\Events\EventDispatcher;
-use Discord\Bot\System\Helpers\ConsoleLogger;
+use Vengine\Libraries\Console\ConsoleLogger;
 use Discord\Bot\System\Interfaces\ComponentLicenseInterface;
 use Discord\Bot\System\License\DTO\ComponentInfo;
 use Discord\Bot\System\License\DTO\KeyPeriod;
 use Discord\Bot\System\License\LicenseInjection;
 use Discord\Bot\System\License\LicenseManager;
 use Discord\Bot\System\License\Storages\ActivateMethodStorage;
-use Discord\Bot\System\License\Storages\KeyPrefixStorage;
 use Discord\Bot\System\Logger;
 use Discord\Bot\System\Migration\MigrationManager;
-use Discord\Bot\System\Storages\TypeSystemStat;
-use Discord\Bot\System\SystemStat;
 use Discord\Bot\System\Traits\ContainerInjection;
 use Discord\Bot\System\Traits\SingletonTrait;
 use Discord\Bot\Scheduler\ScheduleManager;
@@ -24,11 +22,11 @@ use Discord\Bot\System\ComponentsFacade;
 use Discord\Bot\System\Interfaces\SingletonInterface;
 use Discord\Discord;
 use Discord\Exceptions\IntentException;
-use Doctrine\DBAL\Exception;
 use Loader\System\Container;
 use React\EventLoop\LoopInterface;
 use RuntimeException;
 use ReflectionException;
+use Vengine\Libraries\DBAL\DTO\Config as DatabaseConfig;
 
 class Core implements SingletonInterface, ComponentLicenseInterface
 {
@@ -44,7 +42,7 @@ class Core implements SingletonInterface, ComponentLicenseInterface
         MigrationManager $migrationManager,
         ScheduleManager $scheduleManager,
         DiscordEventManager $discordEventManager,
-        DBAL $db
+        Adapter $db
     ) {
         if (empty($_SERVER['create.auto'])) {
             trigger_error(
@@ -76,9 +74,12 @@ class Core implements SingletonInterface, ComponentLicenseInterface
             throw new RuntimeException('Core not init');
         }
 
-        $instance->systemStat->add(TypeSystemStat::CORE);
-
         return $instance;
+    }
+
+    public static function hasInstance(): bool
+    {
+        return self::$instance !== null;
     }
 
     /**
@@ -87,6 +88,10 @@ class Core implements SingletonInterface, ComponentLicenseInterface
      */
     public static function create(Configurator $configurator): static
     {
+        if (static::hasInstance()) {
+            return static::getInstance();
+        }
+
         ConsoleLogger::showMessage('start core create');
 
         $_SERVER['create.auto'] = true;
@@ -111,25 +116,26 @@ class Core implements SingletonInterface, ComponentLicenseInterface
             throw new RuntimeException('invalid config');
         }
 
-        $symbolCommand = $globalConfig['symbolCommand'] ?? '~';
-        $useNewCommandSystem = $globalConfig['useNewCommandSystem'] ?? true;
+        $globalConfigObject = Params::create($globalConfig);
 
-        if (empty($globalConfig['databaseParams']) || !is_array($globalConfig['databaseParams'])) {
+        $dbParams = $globalConfigObject->get('databaseParams');
+        if (empty($dbParams) || !is_array($dbParams)) {
             throw new RuntimeException('db params invalid');
         }
 
-        Config::setDatabaseParams($globalConfig['databaseParams']);
-        Config::setSymbolCommand($symbolCommand);
-        Config::setUseNewCommandSystem($useNewCommandSystem);
+        DatabaseConfig::setDatabaseParams($dbParams);
+        Config::setSymbolCommand($globalConfigObject->get('symbolCommand', '~'));
+        Config::setUseNewCommandSystem($globalConfigObject->get('useNewCommandSystem', true));
+
+        $ds = DIRECTORY_SEPARATOR;
+        $_SERVER['install.dir'] = $globalConfigObject->get(
+            'install.dir',
+            __DIR__ . $ds . 'Migrations' . $ds . 'install' . $ds
+        );
 
         if ($initDI) {
             new Container();
         }
-
-        Container::getInstance()->setShared(
-            'systemStat',
-            Container::getInstance()->createObject(SystemStat::class)
-        );
 
         if (empty($discordOptions)) {
             throw new RuntimeException('discord options empty');
@@ -212,11 +218,34 @@ class Core implements SingletonInterface, ComponentLicenseInterface
 
         $this->scheduleManager->start();
 
-        $this->systemStat->view();
-
         ConsoleLogger::showMessage('app run');
 
         $this->discord->run();
+    }
+
+    /**
+     * @throws ReflectionException
+     * @throws IntentException
+     */
+    public function restart(?Configurator $configurator): void
+    {
+        ConsoleLogger::showMessage(PHP_EOL . 'Restart app' . PHP_EOL);
+
+        $this->discord->close();
+
+        $this->scheduleManager->stop();
+        $this->db->reConnect();
+        $this->discordEventManager->reset();
+
+        Container::getInstance()->getObjectStorage()->delete(strtolower(static::class));
+
+        static::$instance = null;
+
+        $configurator->setInitDI(true);
+
+        ConsoleLogger::showMessage(PHP_EOL . 'App reset done' . PHP_EOL);
+
+        static::create($configurator)->run();
     }
 
     public function getDiscord(): Discord
@@ -244,7 +273,7 @@ class Core implements SingletonInterface, ComponentLicenseInterface
         return $this->scheduleManager;
     }
 
-    public function getDatabaseAdapter(): DBAL
+    public function getDatabaseAdapter(): Adapter
     {
         return $this->db;
     }

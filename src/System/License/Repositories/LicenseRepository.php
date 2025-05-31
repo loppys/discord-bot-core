@@ -2,11 +2,11 @@
 
 namespace Discord\Bot\System\License\Repositories;
 
-use Discord\Bot\System\DBAL;
+use Vengine\Libraries\DBAL\Adapter;
 use Discord\Bot\System\License\Entities\LicenseEntity;
-use Discord\Bot\System\Repository\AbstractRepository;
-use Discord\Bot\System\Repository\CriteriaComparator;
-use Discord\Bot\System\Repository\Entity\AbstractEntity;
+use Vengine\Libraries\Repository\AbstractRepository;
+use Vengine\Libraries\Repository\CriteriaComparator;
+use Vengine\Libraries\Repository\Entity\AbstractEntity;
 
 /**
  * @method LicenseEntity|null createEntity(array $criteria = [])

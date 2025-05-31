@@ -2,9 +2,9 @@
 
 namespace Discord\Bot\Components\Access\Repositories;
 
-use Discord\Bot\System\Repository\AbstractRepository;
+use Vengine\Libraries\Repository\AbstractRepository;
 use Discord\Bot\Components\Access\Entity\AccessEntity;
-use Discord\Bot\System\Repository\Entity\AbstractEntity;
+use Vengine\Libraries\Repository\Entity\AbstractEntity;
 
 /**
  * @method AccessEntity|null createEntity(array $criteria = [])

@@ -12,9 +12,12 @@ use Doctrine\DBAL\Exception;
 /**
  * @method SettingsService getService()
  * @method bool updateSetting(string $name, string $guild, array $data = [])
+ * @property-read SettingsService $service
  */
 class SettingsComponent extends AbstractComponent
 {
+    protected string $mainServiceClass = SettingsService::class;
+
     protected array $migrationList = [
         __DIR__ . '/Migrations/'
     ];
@@ -34,17 +37,12 @@ class SettingsComponent extends AbstractComponent
         ],
     ];
 
-    public function __construct(SettingsService $service)
-    {
-        parent::__construct($service);
-    }
-
     /**
      * @throws Exception
      */
     public function addSetting(array|Setting $setting): static
     {
-        $this->getService()->addSetting($setting);
+        $this->service->addSetting($setting);
 
         return $this;
     }
@@ -52,8 +50,16 @@ class SettingsComponent extends AbstractComponent
     /**
      * @throws Exception
      */
+    public function getSettingByName(string $name, string $guild): ?Setting
+    {
+        return $this->service->getSettingByName($name, $guild);
+    }
+
+    /**
+     * @throws Exception
+     */
     protected function updateSettingEventable(string $name, string $guild, array $data = []): bool
     {
-        return $this->getService()->updateSetting($name, $guild, $data);
+        return $this->service->updateSetting($name, $guild, $data);
     }
 }
