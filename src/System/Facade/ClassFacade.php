@@ -2,13 +2,19 @@
 
 namespace Discord\Bot\System\Facade;
 
+use Discord\Bot\Core;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Vengine\Libraries\Console\ConsoleLogger;
-use Loader\System\Traits\ContainerTrait;
+use Vengine\Libs\DI\Exceptions\ContainerException;
+use Vengine\Libs\DI\Exceptions\NotFoundException;
+use Vengine\Libs\DI\interfaces\ContainerAwareInterface;
+use Vengine\Libs\DI\traits\ContainerAwareTrait;
 use RuntimeException;
 
-class ClassFacade
+class ClassFacade implements ContainerAwareInterface
 {
-    use ContainerTrait;
+    use ContainerAwareTrait;
 
     /**
      * @var array<string>
@@ -17,11 +23,25 @@ class ClassFacade
 
     protected array $created = [];
 
+    /**
+     * @throws ContainerException
+     */
+    public function __construct()
+    {
+        $this->setContainer(Core::getInstance()->getContainer());
+    }
+
     public function __get(string $name)
     {
         return $this->get($name);
     }
 
+    /**
+     * @throws NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws ContainerException
+     * @throws NotFoundException
+     */
     public function __set(string $name, $value): void
     {
         $this->add($name, $value);
@@ -39,6 +59,12 @@ class ClassFacade
         return $this;
     }
 
+    /**
+     * @throws NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws ContainerException
+     * @throws NotFoundException
+     */
     public function overrideClassList(array $classList): static
     {
         foreach ($classList as $name => $class) {
@@ -48,6 +74,12 @@ class ClassFacade
         return $this;
     }
 
+    /**
+     * @throws NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws ContainerException
+     * @throws NotFoundException
+     */
     public function overrideClass(string $name, string $class): static
     {
         $this->classList[$name] = $class;
@@ -60,6 +92,12 @@ class ClassFacade
         return $this;
     }
 
+    /**
+     * @throws NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws ContainerException
+     * @throws NotFoundException
+     */
     public function add(string $name, string|object $class): static
     {
         if ($this->has($name)) {
@@ -116,6 +154,12 @@ class ClassFacade
         return $this->classList;
     }
 
+    /**
+     * @throws NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws ContainerException
+     * @throws NotFoundException
+     */
     protected function create(string $name): void
     {
         $class = $this->getClassByName($name);
@@ -128,7 +172,9 @@ class ClassFacade
             return;
         }
 
-        $object = $this->getContainer()->createObject($class);
+        ConsoleLogger::showMessage("create object: {$name}");
+        $object = $this->getContainer()->get($class);
+        ConsoleLogger::showMessage("object created: {$name}");
 
         if (method_exists($object, 'setName')) {
             call_user_func([$object, 'setName'], $name);

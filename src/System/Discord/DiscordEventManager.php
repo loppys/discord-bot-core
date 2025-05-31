@@ -3,16 +3,15 @@
 namespace Discord\Bot\System\Discord;
 
 use Discord\Bot\Core;
-use Discord\Bot\System\Discord\Events\AbstractEvent;
-use Vengine\Libraries\Console\ConsoleLogger;
-use Loader\System\Traits\ContainerTrait;
 use Discord\Discord;
+use Discord\Bot\System\Discord\Events\AbstractEvent;
+use Discord\Bot\System\Traits\ContainerInjection;
+use Vengine\Libraries\Console\ConsoleLogger;
+use Vengine\Libs\DI\interfaces\ContainerAwareInterface;
 
-class DiscordEventManager
+class DiscordEventManager implements ContainerAwareInterface
 {
-    use ContainerTrait;
-
-    protected Discord $discord;
+    use ContainerInjection;
 
     /**
      * @var array<string>
@@ -23,13 +22,6 @@ class DiscordEventManager
      * @var array<AbstractEvent>
      */
     protected array $registeredEventList = [];
-
-    public function initDiscord(Discord $discord): static
-    {
-        $this->discord = $discord;
-
-        return $this;
-    }
 
     public function initDefaultEvents(): static
     {

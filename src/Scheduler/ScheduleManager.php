@@ -2,6 +2,7 @@
 
 namespace Discord\Bot\Scheduler;
 
+use Discord\Bot\Core;
 use Discord\Bot\Scheduler\Interface\QueueManagerInterface;
 use Discord\Bot\Scheduler\Parts\AbstractTask;
 use Discord\Bot\Scheduler\Parts\DefaultTask;
@@ -10,14 +11,19 @@ use Discord\Bot\Scheduler\Parts\PeriodicTask;
 use Discord\Bot\Scheduler\Storage\ExecuteSchemeStorage;
 use Discord\Bot\Scheduler\Storage\QueueGroupStorage;
 use Discord\Bot\Scheduler\Storage\TaskTypeStorage;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Vengine\Libraries\Console\ConsoleLogger;
-use Loader\System\Traits\ContainerTrait;
+use Vengine\Libs\DI\Exceptions\ContainerException;
+use Vengine\Libs\DI\Exceptions\NotFoundException;
+use Vengine\Libs\DI\interfaces\ContainerAwareInterface;
+use Vengine\Libs\DI\traits\ContainerAwareTrait;
 use React\EventLoop\LoopInterface;
 use React\EventLoop\TimerInterface;
 
-class ScheduleManager
+class ScheduleManager implements ContainerAwareInterface
 {
-    use ContainerTrait;
+    use ContainerAwareTrait;
 
     protected int $executeInterval = 15;
 
@@ -30,11 +36,15 @@ class ScheduleManager
      */
     protected array $taskInLoop = [];
 
+    /**
+     * @throws ContainerException
+     */
     public function __construct(QueueManager $queueManager)
     {
         ConsoleLogger::showMessage('create Scheduler');
 
         $this->queueManager = $queueManager;
+        $this->setContainer(Core::getInstance()->getContainer());
 
         $this->initConfigTasks(__DIR__ . '/config/tasks.php');
     }
@@ -210,6 +220,12 @@ class ScheduleManager
         return true;
     }
 
+    /**
+     * @throws NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws ContainerException
+     * @throws NotFoundException
+     */
     public function initTaskByArray(array $taskArray, string $name = ''): bool
     {
         if (empty($taskArray['name']) && !empty($name)) {
@@ -235,7 +251,7 @@ class ScheduleManager
                 return false;
             }
 
-            $object = $this->getContainer()->createObject($classOrObject);
+            $object = $this->container->get($classOrObject);
 
             $taskArray['handler'] = [$object, $method];
         }

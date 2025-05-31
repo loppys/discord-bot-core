@@ -11,19 +11,20 @@ use Discord\Bot\Scheduler\Storage\QueueGroupStorage;
 use Discord\Bot\System\Events\AbstractSystemEventHandle;
 use Discord\Bot\System\GlobalRepository\Traits\LogSourceTrait;
 use Discord\Bot\System\Traits\SettingsHandleTrait;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Vengine\Libraries\Console\ConsoleLogger;
 use Discord\Bot\System\Interfaces\ComponentInterface;
-use Discord\Bot\System\ComponentsFacade;
 use Discord\Bot\System\License\DTO\ComponentInfo;
 use Discord\Bot\System\License\DTO\KeyPeriod;
 use Discord\Bot\System\License\LicenseInjection;
-use Discord\Bot\System\License\LicenseManager;
 use Discord\Bot\System\License\Storages\ActivateMethodStorage;
 use Discord\Bot\System\License\Storages\KeyPrefixStorage;
 use Discord\Discord;
 use Doctrine\DBAL\Exception;
 use Discord\Bot\Core;
-use ReflectionException;
+use Vengine\Libs\DI\Exceptions\ContainerException;
+use Vengine\Libs\DI\Exceptions\NotFoundException;
 
 abstract class AbstractComponent extends AbstractSystemEventHandle implements ComponentInterface
 {
@@ -32,8 +33,6 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
     use LicenseInjection;
 
     protected string $name = '';
-
-    protected ComponentsFacade $components;
 
     protected Discord $discord;
 
@@ -63,42 +62,39 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
      */
     protected array $commands = [];
 
-    protected LicenseManager $licenseManager;
-
     protected bool $keyRequired = false;
 
     protected Core $core;
 
     /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundException
+     * @throws ContainerException
      * @throws Exception
-     * @throws ReflectionException
+     * @throws NotFoundExceptionInterface
      */
     public function __construct(mixed $service = null)
     {
         parent::__construct();
 
-        $this->core = $core = Core::getInstance();
-
         if ($service !== null) {
             $this->service = $service;
         }
 
-        $this->discord = $core->getDiscord();
-        $this->components = $core->components;
-        $this->licenseManager = $core->licenseManager;
+        $this->discord = Core::getInstance()->getDiscord();
 
         foreach ($this->migrationList as $migrationLink) {
             if (is_dir($migrationLink)) {
-                $core->migrationManager->collectMigrationFiles($migrationLink, force: $this->forceRunMigrations);
+                $this->migrationManager->collectMigrationFiles($migrationLink, force: $this->forceRunMigrations);
 
                 continue;
             }
 
-            $query = $core->migrationManager->createMigrationQuery($migrationLink);
+            $query = $this->migrationManager->createMigrationQuery($migrationLink);
 
             if ($this->forceRunMigrations && $query !== null) {
-                if ($core->migrationManager->migrationExecute($query)) {
-                    $core->migrationManager->removeMigrationByQuery($query);
+                if ($this->migrationManager->migrationExecute($query)) {
+                    $this->migrationManager->removeMigrationByQuery($query);
                 }
             }
         }
@@ -108,7 +104,7 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
                 $name = null;
             }
 
-            $core->scheduleManager->initTaskByArray(
+            $this->scheduleManager->initTaskByArray(
                 $scheduleTask,
                 is_int($name) ? '' : ($name ?? '')
             );
@@ -133,11 +129,11 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
                     ->setQueueGroup(QueueGroupStorage::FIRST)
                 ;
 
-                $core->scheduleManager->addTask($task);
+                $this->scheduleManager->addTask($task);
             } else {
                 foreach ($this->commands as $command) {
                     if (!is_object($command)) {
-                        $command = $core->getContainer()->createObject($command);
+                        $command = $this->getContainer()->get($command);
                     }
 
                     if (!$command instanceof CommandMigration) {
@@ -157,7 +153,7 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
             && !empty($this->mainServiceClass)
             && class_exists($this->mainServiceClass)
         ) {
-            $this->service = $core->getContainer()->createObject($this->mainServiceClass);
+            $this->service = $this->getContainer()->get($this->mainServiceClass);
         }
 
         foreach ($this->additionServices as $propertyName => $serviceClass) {
@@ -166,7 +162,7 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
             }
 
             $setter = 'set' . ucfirst($propertyName);
-            $serviceObject = $core->getContainer()->createObject($serviceClass);
+            $serviceObject = $this->getContainer()->get($serviceClass);
 
             if (method_exists($this, $setter)) {
                 $this->{$setter}($serviceObject);
@@ -236,6 +232,9 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
         return $this;
     }
 
+    /**
+     * @throws Exception
+     */
     public function baseActivateComponent(string $guild = 'default'): void
     {
         $this->_licenseInjection($guild);

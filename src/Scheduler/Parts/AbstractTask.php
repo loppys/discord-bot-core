@@ -2,15 +2,17 @@
 
 namespace Discord\Bot\Scheduler\Parts;
 
+use Discord\Bot\Core;
 use Discord\Bot\Scheduler\Interface\ExecuteSchemeInterface;
-use Discord\Bot\Scheduler\Interface\InstanceAccessInterface;
 use Discord\Bot\Scheduler\Interface\TaskExecuteInterface;
 use Discord\Bot\Scheduler\Interface\TaskInterface;
 use Discord\Bot\Scheduler\Storage\ExecuteSchemeStorage;
 use Discord\Bot\Scheduler\Storage\QueueGroupStorage;
 use Discord\Bot\Scheduler\Storage\TaskTypeStorage;
-use Loader\System\Container;
-use ReflectionException;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
+use Vengine\Libs\DI\Exceptions\ContainerException;
+use Vengine\Libs\DI\Exceptions\NotFoundException;
 
 abstract class AbstractTask implements TaskInterface, TaskExecuteInterface, ExecuteSchemeInterface
 {
@@ -94,7 +96,10 @@ abstract class AbstractTask implements TaskInterface, TaskExecuteInterface, Exec
     }
 
     /**
-     * @throws ReflectionException
+     * @throws NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws ContainerException
+     * @throws NotFoundException
      */
     public function getExecutor(): Executor
     {
@@ -106,7 +111,7 @@ abstract class AbstractTask implements TaskInterface, TaskExecuteInterface, Exec
 
         if (!is_object($object)) {
             if (class_exists($object)) {
-                $object = Container::getInstance()->createObject($object);
+                $object = Core::getInstance()->getContainer()->get($object);
             } else {
                 $object = $this;
             }

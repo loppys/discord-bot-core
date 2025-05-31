@@ -4,7 +4,6 @@ namespace Discord\Bot\System;
 
 use Discord\Bot\System\GlobalRepository\Traits\LogSourceTrait;
 use Discord\Bot\System\GlobalRepository\LogRepository;
-use Doctrine\DBAL\Exception;
 
 class Logger
 {

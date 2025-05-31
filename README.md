@@ -24,7 +24,7 @@ $configurator = Configurator::create([
     ]
 ]);
 
-Core::create($configurator)->run();
+Bootstrap::init($configurator)->run();
 
 ```
 

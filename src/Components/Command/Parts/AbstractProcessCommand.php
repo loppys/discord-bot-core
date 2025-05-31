@@ -8,6 +8,7 @@ use Discord\Bot\Components\Command\DTO\ExecuteResult;
 use Discord\Bot\Components\Command\Interfaces\CascadeCommandInterface;
 use Discord\Bot\Core;
 use Discord\Bot\System\ComponentsFacade;
+use Discord\Bot\System\Traits\ContainerInjection;
 use Vengine\Libraries\DBAL\Adapter;
 use Discord\Builders\MessageBuilder;
 use Discord\Discord;
@@ -15,10 +16,12 @@ use Discord\Http\Exceptions\NoPermissionsException;
 use Discord\Parts\Channel\Message;
 use Discord\Parts\Interactions\Interaction;
 use Doctrine\DBAL\Exception;
-use Loader\System\Container;
+use Vengine\Libs\DI\interfaces\ContainerAwareInterface;
 
-abstract class AbstractProcessCommand
+abstract class AbstractProcessCommand implements ContainerAwareInterface
 {
+    use ContainerInjection;
+
     public bool $isNewScheme = false;
 
     public static int $access = BaseAccessStorage::USER;
@@ -39,8 +42,6 @@ abstract class AbstractProcessCommand
 
     protected Interaction $interaction;
 
-    protected Container $container;
-
     private array $errorList = [];
 
     /**
@@ -50,7 +51,6 @@ abstract class AbstractProcessCommand
 
     public function __construct(Discord $discord, Adapter $db)
     {
-        $this->container = Container::getInstance();
         $this->discord = $discord;
         $this->db = $db;
     }

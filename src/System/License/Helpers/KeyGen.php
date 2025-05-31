@@ -18,10 +18,10 @@ class KeyGen
     protected array $keys = [];
 
     public function __construct(
-        string $prefix = null,
-        string $template = null,
-        string $case = 'upper',
-        int $count = null
+        ?string $prefix = null,
+        ?string $template = null,
+        ?string $case = 'upper',
+        ?int $count = null
     ) {
         if (!empty($prefix)) {
             $this->prefix = $prefix;

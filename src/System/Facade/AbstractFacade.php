@@ -2,15 +2,22 @@
 
 namespace Discord\Bot\System\Facade;
 
+use Discord\Bot\Core;
+use Vengine\Libs\DI\Exceptions\ContainerException;
+
 abstract class AbstractFacade
 {
     private ClassFacade $facade;
 
     protected array $initClassList = [];
 
+    /**
+     * @throws ContainerException
+     */
     public function __construct(bool $initClassList = true)
     {
         $this->facade = new ClassFacade();
+        $this->facade->setContainer(Core::getInstance()->getContainer());
 
         if ($initClassList) {
             $this->facade->initClassList($this->initClassList);

@@ -4,22 +4,18 @@ namespace Discord\Bot\System\Discord\Events;
 
 use Discord\Bot\System\ComponentsFacade;
 use Discord\Bot\System\Discord\Interfaces\EventExtensionInterface;
-use Loader\System\Traits\ContainerTrait;
+use Discord\Bot\System\Traits\ContainerInjection;
+use Vengine\Libs\DI\interfaces\ContainerAwareInterface;
 
-abstract class AbstractEvent
+abstract class AbstractEvent implements ContainerAwareInterface
 {
-    use ContainerTrait;
+    use ContainerInjection;
 
     protected ComponentsFacade $components;
 
     protected string $name = '';
 
     protected string $callbackMethod;
-
-    public function __construct()
-    {
-        $this->container = $this->getContainer();
-    }
 
     public function setComponents(ComponentsFacade $components): static
     {

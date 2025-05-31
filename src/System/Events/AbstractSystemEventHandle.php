@@ -2,12 +2,19 @@
 
 namespace Discord\Bot\System\Events;
 
-use ReflectionException;
-use Loader\System\Container;
+use Discord\Bot\Core;
+use Discord\Bot\System\Traits\ContainerInjection;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Discord\Bot\System\Events\Interfaces\EventListenerInterface;
+use Vengine\Libs\DI\Exceptions\ContainerException;
+use Vengine\Libs\DI\Exceptions\NotFoundException;
+use Vengine\Libs\DI\interfaces\ContainerAwareInterface;
 
-abstract class AbstractSystemEventHandle
+abstract class AbstractSystemEventHandle implements ContainerAwareInterface
 {
+    use ContainerInjection;
+
     protected EventDispatcher $eventDispatcher;
 
     /**
@@ -16,17 +23,22 @@ abstract class AbstractSystemEventHandle
     protected array $_events = [];
 
     /**
-     * @throws ReflectionException
+     * @throws NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws ContainerException
+     * @throws NotFoundException
      */
     public function __construct()
     {
+        $this->setContainer(Core::getInstance()->getContainer());
+
         /** @var EventDispatcher $eventDispatcher */
-        $this->eventDispatcher = Container::getInstance()->getShared('eventDispatcher');
+        $this->eventDispatcher = $this->container->get('eventDispatcher');
 
         foreach ($this->_events as $listener => $item) {
             if (is_string($listener)) {
                 if (class_exists($listener)) {
-                    $listener = Container::getInstance()->createObject($listener);
+                    $listener = $this->container->get($listener);
                 } else {
                     continue;
                 }
