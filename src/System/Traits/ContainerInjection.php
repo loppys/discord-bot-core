@@ -2,16 +2,27 @@
 
 namespace Discord\Bot\System\Traits;
 
-use Loader\System\Traits\ContainerTrait;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
+use Vengine\Libs\DI\Exceptions\ContainerException;
+use Vengine\Libs\DI\Exceptions\NotFoundException;
+use Vengine\Libs\DI\traits\ContainerAwareTrait;
 
 trait ContainerInjection
 {
-    use ContainerTrait;
+    use ContainerAwareTrait;
     use Injectable;
 
-    /** @noinspection MagicMethodsValidityInspection */
+    /**
+     * @noinspection MagicMethodsValidityInspection
+     *
+     * @throws NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws ContainerException
+     * @throws NotFoundException
+     */
     public function __get($name): mixed
     {
-        return $this->getContainer()->getShared($name);
+        return $this->getContainer()->get($name);
     }
 }

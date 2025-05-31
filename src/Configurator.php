@@ -81,11 +81,17 @@ class Configurator
         return $this;
     }
 
+    /**
+     * @deprecated
+     */
     public function isInitDI(): bool
     {
         return $this->initDI;
     }
 
+    /**
+     * @deprecated
+     */
     public function setInitDI(bool $initDI): static
     {
         $this->initDI = $initDI;

@@ -14,8 +14,11 @@ use Discord\Bot\Components\Command\Storage\FlagAccessStorage;
 use Discord\Bot\Components\Command\Storage\ResultCodeStorage;
 use Discord\Bot\Scheduler\Interface\QueueManagerInterface;
 use Discord\Bot\Scheduler\QueueManager;
+use Discord\Bot\System\Traits\ContainerInjection;
 use Discord\Parts\Interactions\Command\Choice;
 use Discord\Parts\Interactions\Command\Option;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Vengine\Libraries\Console\ConsoleLogger;
 use Discord\Parts\Interactions\Command\Command as DiscordCommand;
 use Discord\Bot\Config;
@@ -26,10 +29,14 @@ use Discord\Parts\Guild\Guild;
 use Discord\Parts\Interactions\Interaction;
 use Doctrine\DBAL\Exception as DBException;
 use Exception;
-use Loader\System\Container;
+use Vengine\Libs\DI\Exceptions\ContainerException;
+use Vengine\Libs\DI\Exceptions\NotFoundException;
+use Vengine\Libs\DI\interfaces\ContainerAwareInterface;
 
-class CommandService
+class CommandService implements ContainerAwareInterface
 {
+    use ContainerInjection;
+
     protected CommandRepository $commandRepository;
 
     protected QueueManagerInterface $queueManager;
@@ -152,7 +159,10 @@ class CommandService
     }
 
     /**
-     * @throws Exception
+     * @throws NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundException
+     * @throws ContainerException
      * @throws NoPermissionsException
      * @throws DBException
      */
@@ -195,9 +205,7 @@ class CommandService
             );
         }
 
-        $commandProcess = Core::getInstance()
-            ->getContainer()
-            ->createObject($entity->class)
+        $commandProcess = $this->getContainer()->get($entity->class)
         ;
 
         if (!$commandProcess instanceof AbstractProcessCommand) {
@@ -233,7 +241,11 @@ class CommandService
     }
 
     /**
+     * @throws NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
      * @throws NoPermissionsException
+     * @throws ContainerException
+     * @throws NotFoundException
      * @throws DBException
      */
     public function executeNewScheme(Interaction $interaction): ExecuteResult
@@ -269,8 +281,10 @@ class CommandService
     }
 
     /**
-     * @param array<CommandMigration>|null $migrations
-     * @return void
+     * @throws NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundException
+     * @throws ContainerException
      * @throws DBException
      */
     public function executeCommandMigration(?array $migrations = null): bool
@@ -278,7 +292,7 @@ class CommandService
         /** @var CommandMigration|string $item */
         foreach ($migrations ?? $this->queueManager->compareQueue() as $item) {
             if (!is_object($item)) {
-                $item = Container::getInstance()->createObject($item);
+                $item = $this->getContainer()->get($item);
             }
 
             if (!$item instanceof CommandMigration) {

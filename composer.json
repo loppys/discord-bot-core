@@ -8,7 +8,7 @@
     }
   },
   "require": {
-    "vengine/container": "^3.3",
+    "vengine/container": "^4.0",
     "vengine/cache": "*",
     "vengine-libs/migrations": "*",
     "vengine-libs/repository": "*",

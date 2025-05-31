@@ -2,14 +2,10 @@
 
 namespace Discord\Bot\System\License;
 
-use Discord\Bot\Core;
 use Discord\Bot\Scheduler\Parts\Executor;
 use Discord\Bot\Scheduler\Parts\PeriodicTask;
-use Discord\Bot\Scheduler\ScheduleManager;
-use Discord\Bot\Scheduler\Storage\QueueGroupStorage;
 use Vengine\Libraries\Console\ConsoleLogger;
 use Discord\Bot\System\License\DTO\Key;
-use Loader\System\Container;
 
 trait LicenseInjection
 {
@@ -48,10 +44,7 @@ trait LicenseInjection
             return $this;
         }
 
-        /** @var LicenseManager $lm */
-        $lm = Container::getInstance()->getShared('licenseManager');
-
-        $this->keys[$guild] = $lm->getAllKeys($guild);
+        $this->keys[$guild] = $this->licenseManager->getAllKeys($guild);
 
         if (empty($this->keys[$guild])) {
             ConsoleLogger::showMessage("Warning {$this->getComponentName()}: Guild {$guild} has no keys.");
@@ -66,10 +59,7 @@ trait LicenseInjection
     {
         $taskName = "license_injection_{$guild}";
 
-        /** @var ScheduleManager $scheduler */
-        $scheduler = Container::getInstance()->getShared('scheduleManager');
-
-        if ($scheduler->hasTask($taskName) !== null) {
+        if ($this->scheduleManager->hasTask($taskName) !== null) {
             return;
         }
 
@@ -84,6 +74,6 @@ trait LicenseInjection
             ->setExecutor($executor)
         ;
 
-        $scheduler->addTask($task);
+        $this->scheduleManager->addTask($task);
     }
 }
