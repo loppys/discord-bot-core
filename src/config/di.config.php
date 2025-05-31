@@ -24,7 +24,8 @@ return [
         ],
         'event.dispatcher' => [
             'sharedTags' => [
-                'eventDispatcher'
+                'eventDispatcher',
+                EventDispatcher::class,
             ],
             'class' => EventDispatcher::class,
         ],
@@ -38,12 +39,14 @@ return [
         'base.license' => [
             'class' => LicenseManager::class,
             'sharedTags' => [
-                'licenseManager'
+                'licenseManager',
+                LicenseManager::class,
             ],
         ],
         'DiscordEventManager' => [
             'sharedTags' => [
-                'discordEventManager'
+                'discordEventManager',
+                DiscordEventManager::class,
             ],
             'class' => DiscordEventManager::class,
         ],
@@ -51,12 +54,14 @@ return [
             'sharedTags' => [
                 'scheduleManager',
                 'scheduler',
+                ScheduleManager::class,
             ],
             'class' => ScheduleManager::class,
         ],
         'components' => [
             'sharedTags' => [
                 'componentsFacade',
+                ComponentsFacade::class,
             ],
             'class' => ComponentsFacade::class
         ],
@@ -64,12 +69,14 @@ return [
             'sharedTags' => [
                 'migrations',
                 'migrationManager',
+                MigrationManager::class,
             ],
             'class' => MigrationManager::class,
         ],
         'bot.core' => [
             'sharedTags' => [
                 'core',
+                Core::class,
             ],
             'class' => Core::class,
             'calls' => [
