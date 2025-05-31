@@ -2,6 +2,7 @@
 
 namespace Discord\Bot\Components\Command\Services;
 
+use Discord\Bot\Components\Access\Storage\BaseAccessStorage;
 use Discord\Bot\Components\Command\DTO\Command;
 use Discord\Bot\Components\Command\DTO\CommandMigration;
 use Discord\Bot\Components\Command\DTO\ExecuteResult;
@@ -9,9 +10,12 @@ use Discord\Bot\Components\Command\Entity\CommandEntity;
 use Discord\Bot\Components\Command\Parts\AbstractProcessCommand;
 use Discord\Bot\Components\Command\Repositories\CommandRepository;
 use Discord\Bot\Components\Command\Storage\CommandMigrationTypeStorage;
+use Discord\Bot\Components\Command\Storage\FlagAccessStorage;
 use Discord\Bot\Components\Command\Storage\ResultCodeStorage;
 use Discord\Bot\Scheduler\Interface\QueueManagerInterface;
 use Discord\Bot\Scheduler\QueueManager;
+use Discord\Parts\Interactions\Command\Choice;
+use Discord\Parts\Interactions\Command\Option;
 use Vengine\Libraries\Console\ConsoleLogger;
 use Discord\Parts\Interactions\Command\Command as DiscordCommand;
 use Discord\Bot\Config;
@@ -92,22 +96,47 @@ class CommandService
      */
     public function syncCommands(): bool
     {
-        $guilds = Core::getInstance()->getDiscord()->guilds->toArray();
+        $discord = Core::getInstance()->getDiscord();
+        $guilds = $discord->guilds->toArray();
 
         /** @var Guild $guild */
         foreach ($guilds as $guild) {
             /** @var CommandEntity $commandEntity */
             foreach ($this->commandRepository->getAll() as $commandEntity) {
-                if (!$guild->commands->has($commandEntity->name)) {
-                    $discordCommandDTO = new DiscordCommand(
-                        Core::getInstance()->getDiscord()
-                    );
+                $discordCommandDTO = new DiscordCommand(
+                    Core::getInstance()->getDiscord()
+                );
 
-                    $discordCommandDTO->id = "command:{$commandEntity->name}";
-                    $discordCommandDTO->name = $commandEntity->name;
-                    $discordCommandDTO->description = $commandEntity->description;
+                $discordCommandDTO->id = "command:{$commandEntity->name}";
+                $discordCommandDTO->name = $commandEntity->name;
+                $discordCommandDTO->description = $commandEntity->description;
 
+                $discordCommandDTO->addOption(
+                    new Option($discord, [
+                        'type' => Option::STRING,
+                        'name' => 'test',
+                        'name_localizations' => 'тест',
+                        'description' => 'test link',
+                        'description_localizations' => 'тестовая ссылка',
+                        'required' => true,
+                        'choices' => [
+                            Choice::new($discord, '_test', 'https://www.youtube.com/watch?v=_mFiFnoH9xM')
+                        ],
+                    ])
+                );
+
+                $guild->commands->save($discordCommandDTO);
+
+//                $schemeEntities = $this->commandSchemeRepository->getAll(['csr_command' => $commandEntity->name]);
+//                foreach ($schemeEntities as $scheme) {
+//                }
+
+                if (!$guild->commands->has($commandEntity->name) && $this->hasCommand($commandEntity->name)) {
                     $guild->commands->save($discordCommandDTO);
+                }
+
+                if ($guild->commands->has($commandEntity->name) && !$this->hasCommand($commandEntity->name)) {
+                    $guild->commands->delete($discordCommandDTO);
                 }
             }
 
@@ -145,6 +174,17 @@ class CommandService
             return ExecuteResult::create(ResultCodeStorage::FAIL_EXECUTE_COMMAND);
         }
 
+        $components = Core::getInstance()->components;
+        $user = $components->user->getUser($message->user_id ?? '', $message->guild_id ?? '');
+
+        if ($user === null) {
+            return ExecuteResult::create(ResultCodeStorage::CHECK_USER_FAIL);
+        }
+
+        if ($entity->access > $user->ac_group_lvl ?? BaseAccessStorage::GUEST) {
+            return ExecuteResult::create(ResultCodeStorage::CHECK_ACCESS_FAIL);
+        }
+
         if ($interaction === null && $entity->isNewScheme()) {
             $commandName = $command->getCommandName();
             $cmdSymbol = Config::getSymbolCommand();
@@ -168,7 +208,14 @@ class CommandService
             $commandProcess->setInteraction($interaction);
         }
 
-        $commandProcess->setComponents(Core::getInstance()->components);
+        $commandProcess->setComponents($components);
+
+        $allowedFlags = FlagAccessStorage::ACCESS_LIST[$user->ac_group_lvl ?? BaseAccessStorage::GUEST];
+        foreach ($command->getFlags() as $flag) {
+            if (!in_array($flag, $allowedFlags, true)) {
+                $command->removeFlag($flag);
+            }
+        }
 
         $result = $commandProcess->process(
             $message,

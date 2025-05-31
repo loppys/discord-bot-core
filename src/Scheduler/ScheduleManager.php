@@ -11,8 +11,6 @@ use Discord\Bot\Scheduler\Storage\ExecuteSchemeStorage;
 use Discord\Bot\Scheduler\Storage\QueueGroupStorage;
 use Discord\Bot\Scheduler\Storage\TaskTypeStorage;
 use Vengine\Libraries\Console\ConsoleLogger;
-use Discord\Bot\System\Storages\TypeSystemStat;
-use Discord\Bot\System\Traits\SystemStatAccessTrait;
 use Loader\System\Traits\ContainerTrait;
 use React\EventLoop\LoopInterface;
 use React\EventLoop\TimerInterface;
@@ -20,7 +18,6 @@ use React\EventLoop\TimerInterface;
 class ScheduleManager
 {
     use ContainerTrait;
-    use SystemStatAccessTrait;
 
     protected int $executeInterval = 15;
 
@@ -73,8 +70,6 @@ class ScheduleManager
 
     public function addTask(AbstractTask $task): static
     {
-        $this->getSystemStat()->add(TypeSystemStat::SCHEDULER);
-
         if ($task->getType() === TaskTypeStorage::PERIODIC && $task->getQueueGroup() !== QueueGroupStorage::PERIODIC) {
             $task->setQueueGroup(QueueGroupStorage::PERIODIC);
         }
@@ -180,8 +175,6 @@ class ScheduleManager
     {
         ConsoleLogger::showMessage("execute schedule task: {$task->getName()}");
 
-        $this->getSystemStat()->add(TypeSystemStat::SCHEDULER);
-
         $result = $task->addLaunch()->getExecutor()->execute();
 
         if (
@@ -196,8 +189,6 @@ class ScheduleManager
 
     public function initConfigTasks(string $absolutePath): bool
     {
-        $this->getSystemStat()->add(TypeSystemStat::SCHEDULER);
-
         if (!file_exists($absolutePath)) {
             return false;
         }
@@ -221,8 +212,6 @@ class ScheduleManager
 
     public function initTaskByArray(array $taskArray, string $name = ''): bool
     {
-        $this->getSystemStat()->add(TypeSystemStat::SCHEDULER);
-
         if (empty($taskArray['name']) && !empty($name)) {
             $taskArray['name'] = $name;
         }

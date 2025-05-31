@@ -4,7 +4,6 @@ namespace Discord\Bot\Components;
 
 use Discord\Bot\Components\Command\DTO\CommandMigration;
 use Discord\Bot\Components\Command\Services\CommandService;
-use Discord\Bot\Components\Settings\Entity\Setting;
 use Discord\Bot\Components\Settings\SettingsComponent;
 use Discord\Bot\Scheduler\Parts\DefaultTask;
 use Discord\Bot\Scheduler\Parts\Executor;
@@ -21,8 +20,6 @@ use Discord\Bot\System\License\LicenseInjection;
 use Discord\Bot\System\License\LicenseManager;
 use Discord\Bot\System\License\Storages\ActivateMethodStorage;
 use Discord\Bot\System\License\Storages\KeyPrefixStorage;
-use Discord\Bot\System\Storages\TypeSystemStat;
-use Discord\Bot\System\Traits\SystemStatAccessTrait;
 use Discord\Discord;
 use Doctrine\DBAL\Exception;
 use Discord\Bot\Core;
@@ -31,7 +28,6 @@ use ReflectionException;
 abstract class AbstractComponent extends AbstractSystemEventHandle implements ComponentInterface
 {
     use SettingsHandleTrait;
-    use SystemStatAccessTrait;
     use LogSourceTrait;
     use LicenseInjection;
 
@@ -180,8 +176,6 @@ abstract class AbstractComponent extends AbstractSystemEventHandle implements Co
         }
 
         $this->settingsHandle();
-
-        $this->getSystemStat()->add(TypeSystemStat::COMPONENT);
     }
 
     /**

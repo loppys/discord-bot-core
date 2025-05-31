@@ -15,8 +15,6 @@ use Discord\Bot\System\License\LicenseManager;
 use Discord\Bot\System\License\Storages\ActivateMethodStorage;
 use Discord\Bot\System\Logger;
 use Discord\Bot\System\Migration\MigrationManager;
-use Discord\Bot\System\Storages\TypeSystemStat;
-use Discord\Bot\System\SystemStat;
 use Discord\Bot\System\Traits\ContainerInjection;
 use Discord\Bot\System\Traits\SingletonTrait;
 use Discord\Bot\Scheduler\ScheduleManager;
@@ -75,8 +73,6 @@ class Core implements SingletonInterface, ComponentLicenseInterface
         if (empty($instance)) {
             throw new RuntimeException('Core not init');
         }
-
-        $instance->systemStat->add(TypeSystemStat::CORE);
 
         return $instance;
     }
@@ -140,11 +136,6 @@ class Core implements SingletonInterface, ComponentLicenseInterface
         if ($initDI) {
             new Container();
         }
-
-        Container::getInstance()->setShared(
-            'systemStat',
-            Container::getInstance()->createObject(SystemStat::class)
-        );
 
         if (empty($discordOptions)) {
             throw new RuntimeException('discord options empty');
@@ -226,8 +217,6 @@ class Core implements SingletonInterface, ComponentLicenseInterface
         }
 
         $this->scheduleManager->start();
-
-        $this->systemStat->view();
 
         ConsoleLogger::showMessage('app run');
 

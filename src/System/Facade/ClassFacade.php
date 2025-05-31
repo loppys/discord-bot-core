@@ -3,15 +3,12 @@
 namespace Discord\Bot\System\Facade;
 
 use Vengine\Libraries\Console\ConsoleLogger;
-use Discord\Bot\System\Storages\TypeSystemStat;
-use Discord\Bot\System\Traits\SystemStatAccessTrait;
 use Loader\System\Traits\ContainerTrait;
 use RuntimeException;
 
 class ClassFacade
 {
     use ContainerTrait;
-    use SystemStatAccessTrait;
 
     /**
      * @var array<string>

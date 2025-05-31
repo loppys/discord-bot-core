@@ -68,10 +68,17 @@ class Command
             if ($part[0] === '-') {
                 $part = str_replace('-', '', $part);
 
-                $this->flags[] = $part;
+                $this->flags[$part] = $part;
 
                 unset($this->tempParts[$key]);
             }
+        }
+    }
+
+    public function removeFlag(string $key): void
+    {
+        if (!empty($this->flags[$key])) {
+            unset($this->flags[$key]);
         }
     }
 

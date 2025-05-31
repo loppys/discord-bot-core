@@ -2,12 +2,8 @@
 
 namespace Discord\Bot\System\Facade;
 
-use Discord\Bot\System\Traits\SystemStatAccessTrait;
-
 abstract class AbstractFacade
 {
-    use SystemStatAccessTrait;
-
     private ClassFacade $facade;
 
     protected array $initClassList = [];
@@ -30,12 +26,6 @@ abstract class AbstractFacade
 
     public function get(string $name): mixed
     {
-        $this
-            ->getSystemStat()
-            ->addNewStat($name, "use component `{$name}`")
-            ->add($name)
-        ;
-
         return $this->facade->get($name);
     }
 
